@@ -24,7 +24,6 @@ import android.widget.TextView;
 
 import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.berthold.doorbellsensor.R;
@@ -61,12 +60,12 @@ public class MainActivity extends AppCompatActivity implements BTConnectedInterf
     private final static int ANTENNA = 128225;
 
     // device specific commands
-    private final static String COMMAND_RESET_DOORBELL_COUNTER="rscntr";
+    private final static String COMMAND_RESET_DOORBELL_COUNTER="rsct";
     private final static String COMMAND_SEND_MESSAGE="rmsg";
 
     // UI
     private FloatingActionButton reconnect, connectToAnotherDevice;
-    private TextView connectionStatusView,connectionHistoryView;
+    private TextView connectedDeviceNameAndAddreeView,connectionHistoryView;
     private Button resetDoorBellCounterView,setMessageHomeView,setMessageOutView;
 
     // Animations
@@ -90,7 +89,7 @@ public class MainActivity extends AppCompatActivity implements BTConnectedInterf
         fadeOutAnim = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.menu_fade_out);
 
         // UI
-        connectionStatusView = findViewById(R.id.connection_status);
+        connectedDeviceNameAndAddreeView = findViewById(R.id.connection_status);
         connectionHistoryView=findViewById(R.id.connection_history);
 
         reconnect = (FloatingActionButton) findViewById(R.id.reconnect);
@@ -338,6 +337,7 @@ public class MainActivity extends AppCompatActivity implements BTConnectedInterf
             for (BluetoothDevice dev : btBondedDevices) {
                 if (dev.getAddress().equals(adressOfBluetoothDevice)) {
                     bluetoothDeviceCurentlyConnectedTo = dev;
+                    connectedDeviceNameAndAddreeView.setText(bluetoothDeviceCurentlyConnectedTo.getName()+" // "+bluetoothDeviceCurentlyConnectedTo.getAddress());
                     Log.v(tag, "MYDEBUG>Bonded hc05 adress is:" + bluetoothDeviceCurentlyConnectedTo.getAddress().toString() + " Name:" + bluetoothDeviceCurentlyConnectedTo.getName().toString());
                 }
             }
@@ -364,7 +364,7 @@ public class MainActivity extends AppCompatActivity implements BTConnectedInterf
             String html = "&#" + ANTENNA + " " + name + " " + address;
             Spanned htmlText = Html.fromHtml(html);
 
-            connectionStatusView.setText( name + " // " + address);
+           mainViewModel.btStatusMessage.postValue( name + " // " + address);
 
             BluetoothManager bm = (BluetoothManager) getSystemService(BLUETOOTH_SERVICE);
             blueToothAdapter = bm.getAdapter();
@@ -381,7 +381,7 @@ public class MainActivity extends AppCompatActivity implements BTConnectedInterf
             connectToAnotherDevice.startAnimation(fadeInAnim);
             reconnect.startAnimation(fadeInAnim);
 
-            connectionStatusView.setText("No devices found");
+            connectedDeviceNameAndAddreeView.setText("No devices found");
         }
     }
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

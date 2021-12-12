@@ -130,7 +130,7 @@ public class ConnectedThreadReadWriteData extends Thread {
         }
     }
 
-    /*
+    /**
      * This show a animation in order to give a positive feedback to the user....
      */
     private void animate() {
@@ -138,7 +138,7 @@ public class ConnectedThreadReadWriteData extends Thread {
         String html = "&#" + beatingHeart[animationPhase];
 
         Spanned htmlText = Html.fromHtml(html);
-        connectedInterface.receiveStatusMessage("" + htmlText);
+        //connectedInterface.receiveStatusMessage("" + htmlText);
         if (animationPhase < 1)
             animationPhase++;
         else
