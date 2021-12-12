@@ -77,7 +77,6 @@ public class ConnectedThreadReadWriteData extends Thread {
         // Read Data
         byte[] inBuffer = new byte[1024];
 
-        connectedInterface.receiveStatusMessage(tag + " Connection success!");
         connectedInterface.sucess(this);
 
         int length;

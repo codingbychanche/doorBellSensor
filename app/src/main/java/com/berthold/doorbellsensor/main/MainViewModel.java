@@ -10,23 +10,24 @@ import com.example.bluetoothconnector.ConnectedThreadReadWriteData;
 
 public class MainViewModel extends ViewModel {
 
-    // Live data
-    //
-    // BT- Status
-    public MutableLiveData<String> btStatusMessage;
-    public MutableLiveData<String> getBtStatusMessage(){
-        if (btStatusMessage==null)
-            btStatusMessage=new MutableLiveData<String>();
-        return btStatusMessage;
-    }
-    // BT- error
+    /**
+     * Live data.
+     *
+     */
+     public MutableLiveData<String> btStatusMessage;
+     public MutableLiveData<String> getBtStatusMessage(){
+     if (btStatusMessage==null)
+     btStatusMessage=new MutableLiveData<String>();
+     return btStatusMessage;
+     }
+
     public MutableLiveData<String> btErrorMessage;
     public MutableLiveData<String> getBtErrorMessage(){
         if (btErrorMessage==null)
             btErrorMessage=new MutableLiveData<String>();
         return btErrorMessage;
     }
-    //BT- success
+
     public MutableLiveData<String> btSucessMessage;
     public MutableLiveData<String> getbtSucessMessage() {
         if (btSucessMessage == null)
@@ -34,7 +35,6 @@ public class MainViewModel extends ViewModel {
         return btSucessMessage;
     }
 
-    //BT- receive
     public MutableLiveData<String> btReceivedData;
     public MutableLiveData<String> getbtReceivedData() {
         if (btReceivedData == null)

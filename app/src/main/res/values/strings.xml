@@ -4,4 +4,6 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
 
     <string name="clear_doorbell_counter">Zähler reset</string>
+    <string name="message_iam_home">Daheim..</string>
+    <string name="message_iam_out">Bin weg...</string>
 </resources>
