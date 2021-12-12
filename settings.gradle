@@ -1,0 +1,3 @@
+include ':BluetoothConnector'
+include ':app'
+rootProject.name = "DoorBellSensor"
