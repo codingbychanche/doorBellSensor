@@ -9,8 +9,7 @@ package com.example.bluetoothconnector;
  * to send the received data to the instance(s) implementing this interface.
  * <p>
  * The connected device is represented by it's socket. Socked is obtained and passed by:
- *
- * @see berthold.localtemperature.ConnectThread
+ * {@link com.example.bluetoothconnector.ConnectThread}
  */
 
 import android.bluetooth.BluetoothSocket;
@@ -83,11 +82,11 @@ public class ConnectedThreadReadWriteData extends Thread {
 
         try {
             while (true) {
-                String received = null;
+                String receivedJsonData = null;
                 int readBytes = 0;
                 length = mIs.read(inBuffer);
                 while (readBytes != length) {
-                    received = new String(inBuffer, 0, length);
+                    receivedJsonData = new String(inBuffer, 0, length);
                     readBytes++;
                 }
 
@@ -111,7 +110,7 @@ public class ConnectedThreadReadWriteData extends Thread {
 
                 // OK update display
                 dataChunksActuallySend++;
-                connectedInterface.receiveDataFromBTDevice(received);
+                connectedInterface.receiveDataFromBTDevice(receivedJsonData);
             }
 
         } catch (IOException e) {
@@ -145,8 +144,8 @@ public class ConnectedThreadReadWriteData extends Thread {
             animationPhase = 0;
     }
 
-    /*
-     * Cancel..
+    /**
+     * Closes the connection...
      */
     public void cancel() {
         try {

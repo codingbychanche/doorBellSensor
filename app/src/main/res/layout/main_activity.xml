@@ -1,50 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.motion.widget.MotionLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_layout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@drawable/background_gradient_blue"
+    android:paddingLeft="10dp"
+    android:paddingTop="10dp"
+    android:paddingRight="10dp"
+    android:paddingBottom="10dp"
+    app:layoutDescription="@xml/main_activity_scene">
 
     <!-- Your favourite covid location -->
     <TextView
         android:id="@+id/connection_status"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:background="@drawable/background_corner_rounded"
         android:hint="STATUS"
         app:layout_constraintTop_toTopOf="parent"
         tools:layout_editor_absoluteX="-16dp"></TextView>
 
-    <Button
+    <ImageButton
         android:id="@+id/reset_doorbell_counter_on_dev"
+        android:src="@android:drawable/ic_menu_close_clear_cancel"
+        android:background="@drawable/background_corner_rounded"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/clear_doorbell_counter"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/fragment_dorbell_rag_list"></Button>
+        app:layout_constraintTop_toBottomOf="@+id/fragment_dorbell_rag_list"></ImageButton>
 
-    <Button
-        android:id="@+id/send_message_iam_home"
+    <Switch
+        android:id="@+id/lock_device"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/message_iam_home"
-        app:layout_constraintEnd_toStartOf="@+id/reset_doorbell_counter_on_dev"
-        app:layout_constraintTop_toBottomOf="@+id/fragment_dorbell_rag_list"></Button>
+        android:text="@string/lock_device"
+        app:layout_constraintBottom_toBottomOf="@+id/reset_doorbell_counter_on_dev"
+        app:layout_constraintStart_toStartOf="@+id/fragment_dorbell_rag_list"
+        app:layout_constraintTop_toTopOf="@+id/reset_doorbell_counter_on_dev" />
 
-    <Button
-        android:id="@+id/send_message_iam_out"
-        android:layout_width="wrap_content"
+    <Spinner
+        android:id="@+id/message_select_spinner"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/message_iam_out"
-        app:layout_constraintEnd_toStartOf="@+id/send_message_iam_home"
-        app:layout_constraintTop_toBottomOf="@+id/fragment_dorbell_rag_list"></Button>
+        android:layout_marginTop="8dp"
+        android:background="@drawable/background_corner_rounded"
+        app:layout_constraintTop_toBottomOf="@+id/connection_status"
+        tools:layout_editor_absoluteX="10dp"></Spinner>
 
     <ScrollView
+        android:id="@+id/scrollView2"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        app:layout_constraintTop_toBottomOf="@+id/send_message_iam_home"
-        app:layout_constraintBottom_toBottomOf="parent">
-
+        android:background="@drawable/background_corner_rounded"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/reset_doorbell_counter_on_dev"
+        tools:layout_editor_absoluteX="10dp">
 
         <TextView
             android:id="@+id/connection_history"
@@ -52,26 +64,24 @@
             android:layout_height="wrap_content" />
     </ScrollView>
 
-
     <FrameLayout
         android:id="@+id/fragment_doorbell_watcher"
         android:layout_width="match_parent"
         android:layout_height="100dp"
-        android:layout_marginTop="16dp"
-        android:background="@color/cardview_dark_background"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/background_corner_rounded"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/connection_status"></FrameLayout>
+        app:layout_constraintTop_toBottomOf="@+id/message_select_spinner"></FrameLayout>
 
     <FrameLayout
         android:id="@+id/fragment_dorbell_rag_list"
         android:layout_width="match_parent"
         android:layout_height="100dp"
-        android:layout_marginTop="16dp"
-        android:background="@color/cardview_dark_background"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/background_corner_rounded"
+        app:layout_constraintBottom_toTopOf="@+id/lock_device"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/fragment_doorbell_watcher"></FrameLayout>
 
@@ -93,11 +103,9 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_marginEnd="16dp"
-        android:layout_marginBottom="8dp"
         app:backgroundTint="#bbbbbb"
-        app:layout_constraintBottom_toBottomOf="@+id/reconnect"
         app:layout_constraintEnd_toStartOf="@+id/reconnect"
         app:layout_constraintTop_toTopOf="@+id/reconnect"
         app:srcCompat="@android:drawable/stat_sys_data_bluetooth" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.constraintlayout.motion.widget.MotionLayout>

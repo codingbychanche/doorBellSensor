@@ -16,11 +16,17 @@
  *  Although the Tensy is an quite expensive microcontroller, it proved
  *  to be very reliable to me.
  */
+ #include "Gfx.h"
 //
 // Version info and lib's
 //
 #define FIRMWARE_VERSION "V1.0.0"
 #define CHIPSET "Teensy 2.0 // Max310105 // HC05 BT"
+//
+//
+//
+int TRUE=0;
+int FALSE=1;
 //
 //
 //
@@ -32,9 +38,11 @@
 //
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
-#define SCREEN_WIDTH 128 // OLED display width, in pixels
-#define SCREEN_HEIGHT 32 // OLED display height, in pixels
-#define OLED_RESET     4  // Reset pin # (or -1 if sharing Arduino reset pin)
+#define SCREEN_WIDTH    128   // OLED display width, in pixels
+#define SCREEN_HEIGHT   32    // OLED display height, in pixels
+#define OLED_RESET      4     // Reset pin # (or -1 if sharing Arduino reset pin)
+#define BMP_WIDTH       16
+#define BMP_HEIGHT      8
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 //
 // General info.
@@ -73,24 +81,29 @@ int sensSetButton=11;
 long sens1,sens2;
 long lastSens1ValueRead;
 int lastSensState;
+String sensSetState;
+int numberOfTimesNotSend;
+#define WAIT_TIMES_UNTIL_SEND 50
 //
 // Doorbell rang xxx times...
 //
 int doorBellRang=0;
 //
+// Other sensor readings
+//
+float temperatureC,temperatureF;
+//
 // Display logic
 //
 int displayToShow;
 int displaySelectButton = 10;
+int displayIsLocked=FALSE;
 
-#define NUMBER_OF_SCREENS 5
+#define NUMBER_OF_SCREENS 4
 #define DOORBELL_SCREEN 0
 
 #define TITLE_SCREEN 1
 String titleScreen;
-
-#define STATUS_SCREEN 2
-String statusScreenDisplay;
 
 #define SETTINGS_SCREEN 3
 #define SENSOR_READINGS_SCREEN 4
@@ -105,7 +118,9 @@ int x, minX; // Parameters used to scroll large messages...
 #define RESET_COUNTER   "rsct"
 #define GET_COUNTER     "gtct" 
 #define RECEIVE_MESSAGE "rmsg"  
-
+#define LOCK_KEYS       "lock"
+#define UNLOCK_KEYS     "ulck"
+#define SET_SENSITIVITY "ssns"
 //
 // Max30102/05
 //
@@ -115,7 +130,7 @@ MAX30105 doorBellSensor;
 // HC05   <->   Tensy
 //  RX          TX (PIN 8)
 //  TX          RX (Pin 7)
-SoftwareSerial BT(7,8); 
+SoftwareBT BT(7,8); 
 */
 #define txPin 3
 #define rxPin 4
@@ -143,9 +158,9 @@ void setup() {
   //
   pinMode(sensSetButton,INPUT_PULLUP);
   //
-  // Serial
+  // BT
   //
-  Serial.begin(115200);
+  BT.begin(115200);
   //
   //Setup HC05:
   //
@@ -164,10 +179,12 @@ void setup() {
   //
   if (doorBellSensor.begin() == false)
   {
-    Serial.println("MAX30105 was not found. Please check wiring/power. ");
+    BT.println("MAX30105 was not found. Please check wiring/power. ");
     while (1);
   }
   doorBellSensor.setup();
+
+  sensSetState="Not Set";
 }
 
 /**
@@ -181,7 +198,7 @@ void loop() {
   displayLogic();
  
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  // Receive data via the serial connection and evaluate if and which commands are received...
+  // Receive data via the BT connection and evaluate if and which commands are received...
   //
   char receivedData[255];
   while (BT.available()>0){
@@ -192,7 +209,16 @@ void loop() {
   if (index>0){
     receivedData[index]='\0';
     strcpy(connectionStatus,receivedData);
-   
+    //
+    // Lock keys
+    //
+    if (strcmp(connectionStatus,LOCK_KEYS)==0)
+      displayIsLocked=TRUE;
+    //
+    // Unlock keys
+    //
+      if (strcmp(connectionStatus,UNLOCK_KEYS)==0)
+      displayIsLocked=FALSE;
     //   
     // Resets the doorbell counter to zero....
     //
@@ -201,7 +227,7 @@ void loop() {
       doorBellRang=0;
     }
     //
-    // Sents the doorbell counter status to the
+    // Sends the doorbell counter status to the
     // device requesting it     
     //
     if (strcmp(connectionStatus,GET_COUNTER)==0)
@@ -226,30 +252,24 @@ void loop() {
   index=0;
   }
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  //
   // Sensitivity settings.
+  //
   // Store value read from Max30105 in "sens2" whenever the
-  // approbiate button is pressed.
+  // approbiate button is pressed.Precondition: The settings screen must be displayed at the time the
+  // button is pressed.
   //
   int sb=digitalRead(sensSetButton);
-  if (sb==LOW && displayToShow==SETTINGS_SCREEN)
+  if (sb==LOW && displayToShow==SETTINGS_SCREEN){
     sens2=sens1;
- 
-  //
-  // Voltage check
-  //
-  int voltageCheck=digitalRead(VOLTAGE_CHECK_PIN);
-  if (voltageCheck==HIGH){
-    voltageStatus="ok";
-    digitalWrite(VOLTAGE_LOW_WARNING_PIN,LOW);
-  } else {
-    voltageStatus="Low";
-    digitalWrite(VOLTAGE_LOW_WARNING_PIN,HIGH);
+    sensSetState="Set";
   }
-  //
+ 
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // Read Sensor Max30105
   //
   sens1=doorBellSensor.getIR();  
+  temperatureC=doorBellSensor.readTemperature();
+  temperatureF=doorBellSensor.readTemperatureF();
   //
   // TRIGGER ALARM, IF CONDITIONS APPLY.....
   //
@@ -286,6 +306,13 @@ void loop() {
       //
       BT.println("off");
   }
+  //
+  // Send all data read from the sensor, continiously via the BT connection...
+  //
+  sendData();
+  //
+  // Repeat....
+  //
   lastSens1ValueRead=sens1; 
   lastSensState=sensState;
 }
@@ -297,88 +324,63 @@ void loop() {
  * the screens accordingly.
  */
 void displayLogic(){
+
+  initScreen();
   //
   // Switch screens
   //
   switch (displayToShow){
 
-    case DOORBELL_SCREEN:
-    display.clearDisplay();
-    display.setTextSize(1);            
-    display.setTextColor(SSD1306_WHITE);       
-    display.setCursor(0,4);             
-    display.println("Doorbell rang:");
-    display.setCursor(0,12); 
+    case DOORBELL_SCREEN:  
+              
+    display.drawBitmap(1,14,bell_bmp,32,19,1);
+    display.setCursor(40,16); 
     display.setTextSize(2);
     display.println(doorBellRang);
     display.display();
     break;
     
-    case TITLE_SCREEN:
-    display.clearDisplay();
-    display.setTextSize(1);            
-    display.setTextColor(SSD1306_WHITE);       
-    display.setCursor(0,4);             
-    display.println("Doorbell Sensor");
+    case TITLE_SCREEN:     
+    display.setTextSize(1);      
+    display.setCursor(0,10);             
     display.println("RetroZock 2021");
     display.println(FIRMWARE_VERSION);
     display.display();
     break;
-    
-    case STATUS_SCREEN:
-    display.clearDisplay();
-    display.setTextSize(1);            
-    display.setTextColor(SSD1306_WHITE);       
-    display.setCursor(0,4);             
-    display.print("Bat:");
-    display.println(voltageStatus);
-    display.print("BT:");
-    display.println("-");
-    display.display();
-    break;
 
     case SETTINGS_SCREEN:
-    display.clearDisplay();
-    display.setTextSize(1);            
-    display.setTextColor(SSD1306_WHITE);       
-    display.setCursor(0,4);    
+    display.setTextSize(1);               
+    display.setCursor(0,10);    
     display.println("Set sensitivity:");         
-    display.print("Read:");
-    display.println(sens1);
-    display.print("Stored:");
+    display.print("R:");
+    display.print(sens1);
+    display.print(" S:");
     display.println(sens2);
     display.display();
     break;
 
     case SENSOR_READINGS_SCREEN:
-    display.clearDisplay();
-    display.setTextSize(1);            
-    display.setTextColor(SSD1306_WHITE);       
-    display.setCursor(0,4);             
+    display.setTextSize(1);                   
+    display.setCursor(0,10);             
     display.println("Incomming:");
-    display.setCursor(0,12); 
+    display.setCursor(0,20); 
     display.setTextSize(2);
     display.println(sens1);
     display.display();
     break;
 
     case MESSAGE_SCREEN:
-    display.clearDisplay();
-    display.setTextSize(1);            
-    display.setTextColor(SSD1306_WHITE);       
-    display.setCursor(0,4);             
-    display.println("Message:");
-
-    display.setCursor(x,16); 
+    display.setTextSize(1);              
+    display.setCursor(x,17); 
     display.setTextSize(2);
     display.println(incommingMessage);
     //
     // If message received is larger than the screen width, scroll horizontaly. 
+    //
     if (x<minX)
       x=display.width();    
     display.display();
-    x=x-2;
- 
+    x=x-8;
     break;
   }
   //
@@ -388,10 +390,133 @@ void displayLogic(){
   if (displaySelectState==LOW){
     if (displayToShow<=NUMBER_OF_SCREENS){
       displayToShow++;
-      delay(250);
-    } else {
-      delay(250);
+    }else{ 
       displayToShow=DOORBELL_SCREEN;
     }
   }
 }
+
+/**
+ * Inits the screen.
+ * 
+ * Should be called before anything on the screen is 
+ * changed. 
+ * 
+ * Clears the screen and draws the status line. Performs various checks
+ * (e.g. voltage status) and displays the result.
+ */
+ void initScreen (){
+  display.clearDisplay();
+  display.setTextSize(1);            
+  display.setTextColor(SSD1306_WHITE);   
+  display.setCursor(0,0);
+  
+  display.drawLine(0,9, display.width(), 9, SSD1306_WHITE);
+  //
+  // Voltage check
+  //
+  int voltageCheck=digitalRead(VOLTAGE_CHECK_PIN);
+  if (voltageCheck==HIGH){
+    display.drawBitmap(0,0,bat_full_bmp,BMP_WIDTH,BMP_HEIGHT,1);
+    digitalWrite(VOLTAGE_LOW_WARNING_PIN,LOW);
+    voltageStatus="OK";
+  } else {
+    display.drawBitmap(0,0,bat_low_bmp,BMP_WIDTH,BMP_HEIGHT,1);
+    digitalWrite(VOLTAGE_LOW_WARNING_PIN,HIGH);
+    voltageStatus="Low";
+  }
+  //
+  // Display locked?
+  //
+  // If so, lock and show the message screen. When unlocked, the
+  // last screen shown before the screen was locked will be shown again...
+  //
+  if (displayIsLocked==TRUE){
+      display.drawBitmap(BMP_WIDTH+4,0,key_bmp,BMP_WIDTH,BMP_HEIGHT,1);
+      displayToShow=MESSAGE_SCREEN;
+  }
+  if (displayIsLocked==FALSE){
+     display.drawBitmap(BMP_WIDTH+4,0,unlocked_bmp,16,8,1);
+  }
+  //
+  // Sensor was set?
+  //
+  display.setCursor(40,0);
+  display.print (sensSetState);
+  //
+  // A little feature :-)
+  //
+  display.setCursor(100,0);
+  display.print ((int)temperatureC);
+  display.print("'C");
+ }
+ /**
+  * Send all data aquired via the BT connection.
+  * 
+  * 
+  */
+  void sendData(){
+
+    if (numberOfTimesNotSend>WAIT_TIMES_UNTIL_SEND){
+      BT.print("{\"firmware_version\":");
+      BT.print("\"");
+      BT.print(FIRMWARE_VERSION);
+      BT.print("\"");
+      BT.print(",");
+    
+    
+      BT.print("\"hardware_status\":");
+      BT.print("\"");
+      BT.print("-");
+      BT.print("\"");
+      BT.print(",");
+    
+      BT.print("\"voltage_status\":");
+      BT.print("\"");
+      BT.print(voltageStatus);
+      BT.print("\"");
+      BT.print(",");
+      
+      BT.print("\"temperature_degrees\":");
+      BT.print(temperatureC);
+      BT.print(",");
+      
+      BT.print("\"temperature_farenheit\":");
+      BT.print(temperatureF);
+      BT.print(",");
+  
+      BT.print("\"doorbell_rang\":");
+      BT.print(doorBellRang);
+      BT.print(",");
+  
+  
+      BT.print("\"on_to_off_state\":");
+      BT.print("\"");
+      BT.print("-");
+      BT.print("\"");
+      BT.print(",");
+  
+      BT.print("\"off_to_on_state\":");
+      BT.print("\"");
+      BT.print("-");
+      BT.print("\"");
+      BT.print(",");
+  
+      BT.print("\"sens_set_state\":");
+      BT.print("\"");
+      BT.print(sensSetState);
+      BT.print("\"");
+      BT.print(",");
+  
+      BT.print("\"sens_read\":");
+      BT.print(sens1);
+      BT.print(",");
+  
+      BT.print("\"sens_set_to\":");
+      BT.print(sens2);
+    
+      BT.println("}");
+      numberOfTimesNotSend=0;
+    }
+    numberOfTimesNotSend++;
+  }

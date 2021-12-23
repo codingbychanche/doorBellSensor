@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MotionScene 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:motion="http://schemas.android.com/apk/res-auto">
+
+    <ConstraintSet android:id="@+id/start">
+        <Constraint
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:id="@+id/message_select_spinner"
+            motion:layout_constraintEnd_toEndOf="@+id/fragment_doorbell_watcher"
+            motion:layout_constraintTop_toBottomOf="@+id/connection_status"
+            android:layout_marginEnd="0dp"
+            android:layout_marginTop="8dp" />
+        <Constraint
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            motion:layout_constraintTop_toBottomOf="@+id/fragment_dorbell_rag_list"
+            android:id="@+id/send_message_image"
+            motion:layout_constraintStart_toStartOf="@+id/fragment_dorbell_rag_list" />
+        <Constraint
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:id="@+id/send_message_view"
+            motion:layout_constraintStart_toStartOf="@+id/fragment_dorbell_rag_list"
+            motion:layout_constraintTop_toBottomOf="@+id/fragment_dorbell_rag_list" />
+        <Constraint
+            android:layout_height="0dp"
+            motion:layout_editor_absoluteX="10dp"
+            motion:layout_constraintBottom_toBottomOf="parent"
+            android:layout_width="match_parent"
+            android:id="@+id/scrollView2"
+            motion:layout_constraintTop_toBottomOf="@+id/reset_doorbell_counter_on_dev" />
+        <Constraint
+            android:layout_height="wrap_content"
+            motion:layout_constraintEnd_toEndOf="parent"
+            android:layout_width="wrap_content"
+            motion:layout_constraintTop_toBottomOf="@+id/fragment_dorbell_rag_list"
+            android:id="@+id/reset_doorbell_counter_on_dev" />
+        <Constraint
+            android:layout_height="100dp"
+            motion:layout_constraintStart_toStartOf="parent"
+            motion:layout_constraintHorizontal_bias="0.0"
+            motion:layout_constraintEnd_toEndOf="parent"
+            android:layout_width="match_parent"
+            android:id="@+id/fragment_doorbell_watcher"
+            motion:layout_constraintTop_toBottomOf="@+id/message_select_spinner"
+            android:layout_marginTop="8dp" />
+        <Constraint
+            motion:layout_constraintEnd_toEndOf="parent"
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            motion:layout_constraintTop_toBottomOf="@+id/fragment_doorbell_watcher"
+            motion:layout_constraintHorizontal_bias="0.0"
+            motion:layout_constraintStart_toStartOf="parent"
+            android:layout_marginTop="8dp"
+            android:id="@+id/fragment_dorbell_rag_list" />
+        <Constraint
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:id="@+id/lock_device"
+            motion:layout_constraintTop_toTopOf="@+id/reset_doorbell_counter_on_dev"
+            motion:layout_constraintStart_toStartOf="@+id/fragment_dorbell_rag_list"
+            motion:layout_constraintBottom_toBottomOf="@+id/reset_doorbell_counter_on_dev" />
+        <Constraint
+            android:layout_marginEnd="16dp"
+            android:layout_height="wrap_content"
+            motion:layout_constraintTop_toTopOf="@+id/reconnect"
+            android:layout_width="wrap_content"
+            motion:layout_constraintEnd_toStartOf="@+id/reconnect"
+            android:id="@+id/select_device" />
+    </ConstraintSet>
+
+    <ConstraintSet android:id="@+id/end">
+        <Constraint
+            android:layout_height="0dp"
+            motion:layout_editor_absoluteX="10dp"
+            motion:layout_constraintBottom_toBottomOf="parent"
+            android:layout_width="match_parent"
+            motion:layout_constraintTop_toBottomOf="parent"
+            android:id="@+id/scrollView2" />
+        <Constraint
+            android:layout_height="wrap_content"
+            motion:layout_constraintEnd_toEndOf="parent"
+            android:layout_width="wrap_content"
+            motion:layout_constraintTop_toBottomOf="@+id/fragment_dorbell_rag_list"
+            android:id="@+id/reset_doorbell_counter_on_dev" />
+        <Constraint
+            android:layout_height="0dp"
+            android:layout_marginTop="8dp"
+            android:layout_width="match_parent"
+            motion:layout_constraintTop_toBottomOf="@+id/fragment_doorbell_watcher"
+            motion:layout_constraintStart_toStartOf="parent"
+            android:id="@+id/fragment_dorbell_rag_list"
+            motion:layout_constraintEnd_toEndOf="parent"
+            motion:layout_constraintBottom_toTopOf="@+id/reconnect" />
+        <Constraint
+            android:layout_height="wrap_content"
+            motion:layout_constraintTop_toTopOf="@+id/reset_doorbell_counter_on_dev"
+            android:layout_width="wrap_content"
+            android:id="@+id/lock_device"
+            motion:layout_constraintStart_toStartOf="@+id/fragment_dorbell_rag_list"
+            motion:layout_constraintBottom_toBottomOf="@+id/reset_doorbell_counter_on_dev" />
+        <Constraint
+            android:layout_marginEnd="16dp"
+            android:layout_height="wrap_content"
+            motion:layout_constraintTop_toTopOf="@+id/reconnect"
+            android:layout_width="wrap_content"
+            motion:layout_constraintEnd_toStartOf="@+id/reconnect"
+            android:id="@+id/select_device" />
+    </ConstraintSet>
+
+    <Transition
+        motion:constraintSetEnd="@+id/start"
+        motion:constraintSetStart="@+id/end">
+        <OnSwipe
+            motion:touchRegionId="@+id/main_layout"
+        motion:dragDirection="dragUp"
+        motion:duration="10000"
+        motion:touchAnchorSide="bottom"
+        />
+    </Transition>
+    <Transition
+        motion:constraintSetEnd="@+id/end"
+        motion:constraintSetStart="@+id/start">
+        <OnSwipe
+            motion:touchRegionId="@+id/main_layout"
+        motion:dragDirection="dragDown"
+        motion:duration="10000"
+        motion:touchAnchorSide="bottom"
+        />
+    </Transition>
+
+</MotionScene>

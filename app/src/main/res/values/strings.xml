@@ -2,8 +2,17 @@
     <string name="app_name">DoorBellSensor</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="lock_device">Tastensperre</string>
 
-    <string name="clear_doorbell_counter">Zähler reset</string>
-    <string name="message_iam_home">Daheim..</string>
-    <string name="message_iam_out">Bin weg...</string>
+
+    <!-- Messages to be send to the connected device -->
+    <string-array name="messages_to_send">
+        <item>@string/message_iam_home</item>
+        <item>@string/message_iam_out</item>
+        <item>@string/message_iam_home_do_not_disturb</item>
+    </string-array>
+
+    <string name="message_iam_home">Ich bin daheim......</string>
+    <string name="message_iam_out">Ich bin weg......</string>
+    <string name="message_iam_home_do_not_disturb">Ich bin daheim, bitte nocht stoeren......</string>
 </resources>

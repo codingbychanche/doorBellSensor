@@ -19,7 +19,14 @@ import android.util.Log;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CompoundButton;
+import android.widget.ImageButton;
+import android.widget.RadioGroup;
+import android.widget.Spinner;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import androidx.fragment.app.FragmentManager;
@@ -30,11 +37,12 @@ import com.berthold.doorbellsensor.R;
 import com.example.bluetoothconnector.*;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Set;
 
 /**
  * Detects when the doorbell has been rang....
- *
  */
 public class MainActivity extends AppCompatActivity implements BTConnectedInterface, FragmentSelectDevice.getDataFromFragment {
 
@@ -60,20 +68,23 @@ public class MainActivity extends AppCompatActivity implements BTConnectedInterf
     private final static int ANTENNA = 128225;
 
     // device specific commands
-    private final static String COMMAND_RESET_DOORBELL_COUNTER="rsct";
-    private final static String COMMAND_SEND_MESSAGE="rmsg";
+    private final static String COMMAND_RESET_DOORBELL_COUNTER = "rsct";
+    private final static String COMMAND_SEND_MESSAGE = "rmsg";
+    private final static String COMMAND_LOCK = "lock";
+    private final static String COMMAND_UNLOCK="ulck";
 
     // UI
     private FloatingActionButton reconnect, connectToAnotherDevice;
-    private TextView connectedDeviceNameAndAddreeView,connectionHistoryView;
-    private Button resetDoorBellCounterView,setMessageHomeView,setMessageOutView;
+    private TextView connectedDeviceNameAndAddreeView, connectionHistoryView;
+    private ImageButton resetDoorBellCounterView;
+    private Switch lockDeviceView;
+    private Spinner sendMessageSelectView;
 
     // Animations
     Animation fadeInAnim, fadeOutAnim;
 
     /**
      * Let there be light......
-     *
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,7 +93,7 @@ public class MainActivity extends AppCompatActivity implements BTConnectedInterf
 
         // Debug
         tag = getClass().getSimpleName();
-        Long time=System.currentTimeMillis();
+        Long time = System.currentTimeMillis();
 
         // Anim
         fadeInAnim = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.menu_fade_in);
@@ -90,7 +101,7 @@ public class MainActivity extends AppCompatActivity implements BTConnectedInterf
 
         // UI
         connectedDeviceNameAndAddreeView = findViewById(R.id.connection_status);
-        connectionHistoryView=findViewById(R.id.connection_history);
+        connectionHistoryView = findViewById(R.id.connection_history);
 
         reconnect = (FloatingActionButton) findViewById(R.id.reconnect);
         reconnect.setOnClickListener(new View.OnClickListener() {
@@ -108,46 +119,71 @@ public class MainActivity extends AppCompatActivity implements BTConnectedInterf
             }
         });
 
+        //
+        // Sends messages to the connected device...
+        //
+        sendMessageSelectView = findViewById(R.id.message_select_spinner);
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.messages_to_send, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        sendMessageSelectView.setAdapter(adapter);
+        sendMessageSelectView.setSelection(0);
+
+        sendMessageSelectView.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                long currentTime = System.currentTimeMillis();
+
+                if (connectedThreadReadWriteData != null) {
+                    connectedThreadReadWriteData.send(COMMAND_SEND_MESSAGE);
+                    connectedThreadReadWriteData.send(mainViewModel.messageLogic(i));
+
+                    connectionHistoryView.append(currentTime + ">>Message:" + mainViewModel.messageLogic(i) + "\n");
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+            }
+        });
+
         /////////////////////////////////////////////////// Sends commands to the connected device ///////////////////////////////////////////////////////////
         // Reset doorbell counter
         //
-        resetDoorBellCounterView=findViewById(R.id.reset_doorbell_counter_on_dev);
+        resetDoorBellCounterView = findViewById(R.id.reset_doorbell_counter_on_dev);
         resetDoorBellCounterView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(connectedThreadReadWriteData!=null) {
+                if (connectedThreadReadWriteData != null) {
                     connectedThreadReadWriteData.send(COMMAND_RESET_DOORBELL_COUNTER);
-                    connectionHistoryView.append("Doorbell counter was reset\n");
+                    long currentTime = System.currentTimeMillis();
+                    connectionHistoryView.append(currentTime + ">>Doorbell counter was reset\n");
                 }
             }
         });
 
-        // Send message "Home"
-        setMessageHomeView=findViewById(R.id.send_message_iam_home);
-        setMessageHomeView.setOnClickListener(new View.OnClickListener() {
+        //
+        // Lock device
+        //
+        lockDeviceView=findViewById(R.id.lock_device);
+        lockDeviceView.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
-            public void onClick(View view) {
-                if(connectedThreadReadWriteData!=null) {
-                    connectedThreadReadWriteData.send(COMMAND_SEND_MESSAGE);
-                    connectedThreadReadWriteData.send("Ich bin zuhause..........");
-                    connectionHistoryView.append("Message: I'am home was send\n");
+            public void onCheckedChanged(CompoundButton compoundButton, boolean isLocked) {
+                if(isLocked){
+                    if (connectedThreadReadWriteData != null) {
+                        connectedThreadReadWriteData.send(COMMAND_LOCK);
+                        long currentTime = System.currentTimeMillis();
+                        connectionHistoryView.append(currentTime + ">>Keys on device are now locked.....\n");
+                    }
+                } else {
+                    if (connectedThreadReadWriteData != null) {
+                        connectedThreadReadWriteData.send(COMMAND_UNLOCK);
+                        long currentTime = System.currentTimeMillis();
+                        connectionHistoryView.append(currentTime + ">>Keys on device are now unlocked.....\n");
+                    }
                 }
             }
         });
-
-        // Send message "Out"
-        setMessageOutView=findViewById(R.id.send_message_iam_out);
-        setMessageOutView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if(connectedThreadReadWriteData!=null) {
-                    connectedThreadReadWriteData.send(COMMAND_SEND_MESSAGE);
-                    connectedThreadReadWriteData.send("Ich bin in der Wanne. Bitte heute Abdend nochmal versuchen..........");
-                    connectionHistoryView.append("Message: I'am out was send\n");
-                }
-            }
-        });
-
+        
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // View model and it's observers
         //
@@ -157,7 +193,7 @@ public class MainActivity extends AppCompatActivity implements BTConnectedInterf
         final Observer<String> btStatusObserver = new Observer<String>() {
             @Override
             public void onChanged(@Nullable final String status) {
-                connectionHistoryView.append(status+"\n");
+                connectionHistoryView.append(status + "\n");
             }
         };
         mainViewModel.getBtStatusMessage().observe(this, btStatusObserver);
@@ -168,7 +204,8 @@ public class MainActivity extends AppCompatActivity implements BTConnectedInterf
             public void onChanged(@Nullable final String error) {
                 connectToAnotherDevice.startAnimation(fadeInAnim);
                 reconnect.startAnimation(fadeInAnim);
-                connectionHistoryView.append(error+"\n");
+                long currentTime = System.currentTimeMillis();
+                connectionHistoryView.append(currentTime + ">>" + error + "\n");
             }
         };
         mainViewModel.getBtErrorMessage().observe(this, btErrorObserver);
@@ -177,7 +214,8 @@ public class MainActivity extends AppCompatActivity implements BTConnectedInterf
         final Observer<String> btSuccessObserver = new Observer<String>() {
             @Override
             public void onChanged(@Nullable final String success) {
-                connectionHistoryView.append(success+"\n");
+                long currentTime = System.currentTimeMillis();
+                connectionHistoryView.append(currentTime + ">>" + success + "\n");
             }
         };
         mainViewModel.getbtSucessMessage().observe(this, btSuccessObserver);
@@ -186,7 +224,9 @@ public class MainActivity extends AppCompatActivity implements BTConnectedInterf
         final Observer<String> btReceiveDataObserver = new Observer<String>() {
             @Override
             public void onChanged(@Nullable final String received) {
-                connectionHistoryView.append("Received:"+received+"\n");
+                long currentTime = System.currentTimeMillis();
+                //connectionHistoryView.append(currentTime + ">>Received:" + received + "\n");
+                Log.v("RECEIVED_RECEIVED_",received);
             }
         };
         mainViewModel.getbtReceivedData().observe(this, btReceiveDataObserver);
@@ -239,6 +279,12 @@ public class MainActivity extends AppCompatActivity implements BTConnectedInterf
         reconnect.startAnimation(fadeOutAnim);
 
         currentStateSaveToSharedPref(addressOfCurrentDevice);
+
+        //
+        // Send initial message....
+        //
+        connectedThreadReadWriteData.send(COMMAND_SEND_MESSAGE);
+        connectedThreadReadWriteData.send(mainViewModel.messageLogic(mainViewModel.MESSAGE_HOME));
     }
 
     /**
@@ -272,6 +318,7 @@ public class MainActivity extends AppCompatActivity implements BTConnectedInterf
     // Would be nice if I could move this code to the view model. For he time beeing using the view model
     // helped me to avoid working with handlers to access UI components
     //
+
     /**
      * When bt is turned on or it was turned on, this checks if a
      * device address was stored in shared prefs and if so, get the
@@ -337,7 +384,7 @@ public class MainActivity extends AppCompatActivity implements BTConnectedInterf
             for (BluetoothDevice dev : btBondedDevices) {
                 if (dev.getAddress().equals(adressOfBluetoothDevice)) {
                     bluetoothDeviceCurentlyConnectedTo = dev;
-                    connectedDeviceNameAndAddreeView.setText(bluetoothDeviceCurentlyConnectedTo.getName()+" // "+bluetoothDeviceCurentlyConnectedTo.getAddress());
+                    connectedDeviceNameAndAddreeView.setText(bluetoothDeviceCurentlyConnectedTo.getName() + " // " + bluetoothDeviceCurentlyConnectedTo.getAddress());
                     Log.v(tag, "MYDEBUG>Bonded hc05 adress is:" + bluetoothDeviceCurentlyConnectedTo.getAddress().toString() + " Name:" + bluetoothDeviceCurentlyConnectedTo.getName().toString());
                 }
             }
@@ -364,7 +411,7 @@ public class MainActivity extends AppCompatActivity implements BTConnectedInterf
             String html = "&#" + ANTENNA + " " + name + " " + address;
             Spanned htmlText = Html.fromHtml(html);
 
-           mainViewModel.btStatusMessage.postValue( name + " // " + address);
+            mainViewModel.btStatusMessage.postValue(name + " // " + address);
 
             BluetoothManager bm = (BluetoothManager) getSystemService(BLUETOOTH_SERVICE);
             blueToothAdapter = bm.getAdapter();
