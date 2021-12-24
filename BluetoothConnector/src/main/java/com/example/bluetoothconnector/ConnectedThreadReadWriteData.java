@@ -13,7 +13,6 @@ package com.example.bluetoothconnector;
  */
 
 import android.bluetooth.BluetoothSocket;
-import android.os.Handler;
 import android.text.Html;
 import android.text.Spanned;
 import android.widget.TextView;
@@ -110,7 +109,7 @@ public class ConnectedThreadReadWriteData extends Thread {
 
                 // OK update display
                 dataChunksActuallySend++;
-                connectedInterface.receiveDataFromBTDevice(receivedJsonData);
+                connectedInterface.receiveDataFromBTDevice(DecodeSensorData.decodeJson(receivedJsonData));
             }
 
         } catch (IOException e) {

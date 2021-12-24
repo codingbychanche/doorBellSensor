@@ -21,10 +21,8 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
-import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -37,8 +35,6 @@ import com.berthold.doorbellsensor.R;
 import com.example.bluetoothconnector.*;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
-import java.util.Calendar;
-import java.util.Date;
 import java.util.Set;
 
 /**
@@ -71,7 +67,7 @@ public class MainActivity extends AppCompatActivity implements BTConnectedInterf
     private final static String COMMAND_RESET_DOORBELL_COUNTER = "rsct";
     private final static String COMMAND_SEND_MESSAGE = "rmsg";
     private final static String COMMAND_LOCK = "lock";
-    private final static String COMMAND_UNLOCK="ulck";
+    private final static String COMMAND_UNLOCK = "ulck";
 
     // UI
     private FloatingActionButton reconnect, connectToAnotherDevice;
@@ -164,11 +160,11 @@ public class MainActivity extends AppCompatActivity implements BTConnectedInterf
         //
         // Lock device
         //
-        lockDeviceView=findViewById(R.id.lock_device);
+        lockDeviceView = findViewById(R.id.lock_device);
         lockDeviceView.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean isLocked) {
-                if(isLocked){
+                if (isLocked) {
                     if (connectedThreadReadWriteData != null) {
                         connectedThreadReadWriteData.send(COMMAND_LOCK);
                         long currentTime = System.currentTimeMillis();
@@ -183,7 +179,7 @@ public class MainActivity extends AppCompatActivity implements BTConnectedInterf
                 }
             }
         });
-        
+
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // View model and it's observers
         //
@@ -219,17 +215,6 @@ public class MainActivity extends AppCompatActivity implements BTConnectedInterf
             }
         };
         mainViewModel.getbtSucessMessage().observe(this, btSuccessObserver);
-
-        // BT- receive data
-        final Observer<String> btReceiveDataObserver = new Observer<String>() {
-            @Override
-            public void onChanged(@Nullable final String received) {
-                long currentTime = System.currentTimeMillis();
-                //connectionHistoryView.append(currentTime + ">>Received:" + received + "\n");
-                Log.v("RECEIVED_RECEIVED_",received);
-            }
-        };
-        mainViewModel.getbtReceivedData().observe(this, btReceiveDataObserver);
 
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         //
@@ -288,6 +273,16 @@ public class MainActivity extends AppCompatActivity implements BTConnectedInterf
     }
 
     /**
+     * Publishes received data to all observers...
+     *
+     * @param d
+     */
+    @Override
+    public void receiveDataFromBTDevice(DecodedSensorData d) {
+        mainViewModel.btReceivedData.postValue(d);
+    }
+
+    /**
      * Callback receive status message from connected device.
      */
     @Override
@@ -303,15 +298,6 @@ public class MainActivity extends AppCompatActivity implements BTConnectedInterf
     public void receiveErrorMessage(String error) {
         Log.v(tag, error);
         mainViewModel.btErrorMessage.postValue(error);
-    }
-
-    /**
-     * Callback receiving data from connected device.
-     */
-    @Override
-    public void receiveDataFromBTDevice(String received) {
-        Log.v(tag, received);
-        mainViewModel.btReceivedData.postValue(received);
     }
 
     /////////////////////////////////////////////////////// All things Bluetooth ///////////////////////////////////////////////////////////////////////////

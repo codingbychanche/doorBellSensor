@@ -6,7 +6,7 @@ package com.example.bluetoothconnector;
  */
 public interface BTConnectedInterface {
     void sucess (ConnectedThreadReadWriteData connectedThreadReadWriteData);
-    void receiveDataFromBTDevice(String data);
+    void receiveDataFromBTDevice(DecodedSensorData data);
     void receiveErrorMessage(String error);
     void receiveStatusMessage (String status);
 }

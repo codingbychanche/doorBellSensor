@@ -1,12 +1,9 @@
 package com.berthold.doorbellsensor.main;
 
-import android.util.Log;
-
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.example.bluetoothconnector.BTConnectedInterface;
-import com.example.bluetoothconnector.ConnectedThreadReadWriteData;
+import com.example.bluetoothconnector.DecodedSensorData;
 
 public class MainViewModel extends ViewModel {
 
@@ -40,10 +37,10 @@ public class MainViewModel extends ViewModel {
         return btSucessMessage;
     }
 
-    public MutableLiveData<String> btReceivedData;
-    public MutableLiveData<String> getbtReceivedData() {
+    public MutableLiveData<DecodedSensorData> btReceivedData;
+    public MutableLiveData<DecodedSensorData> getbtReceivedData() {
         if (btReceivedData == null)
-            btReceivedData = new MutableLiveData<String>();
+            btReceivedData = new MutableLiveData<DecodedSensorData>();
         return btReceivedData;
     }
 
