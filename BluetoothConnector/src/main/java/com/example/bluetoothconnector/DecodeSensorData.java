@@ -21,6 +21,8 @@ public class DecodeSensorData {
 
     public static DecodedSensorData decodeJson(String jsonRecieievedDataFromBluetoothDevice)
     {
+
+        Log.v("JSON>>>>",jsonRecieievedDataFromBluetoothDevice);
         String tag=null;
         DecodedSensorData decodedSensorData=new DecodedSensorData();
 
@@ -39,6 +41,7 @@ public class DecodeSensorData {
             if (jo.has("sens_set_state")) decodedSensorData.setSensSetState(jo.getString("sens_set_state"));
             if (jo.has("sens_read")) decodedSensorData.setSensReadData(jo.getLong("sens_read"));
             if (jo.has("sens_set_to")) decodedSensorData.setSensReadData(jo.getLong("sens_set_to"));
+            decodedSensorData.declareDataAsComplete();
         }catch (JSONException e) {
             Log.v(tag,e.toString());
             Log.v("JSON::",e.toString());

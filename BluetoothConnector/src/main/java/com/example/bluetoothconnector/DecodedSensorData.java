@@ -26,6 +26,7 @@ public class DecodedSensorData {
     public void declareDataAsIncomplete() {
         this.dataIsIncomplete =true;
     }
+    public void declareDataAsComplete(){this.dataIsIncomplete=false;}
 
     public String getFirmwareVersion() {
         return firmwareVersion;

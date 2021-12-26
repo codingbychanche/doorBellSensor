@@ -83,7 +83,7 @@ long lastSens1ValueRead;
 int lastSensState;
 String sensSetState;
 int numberOfTimesNotSend;
-#define WAIT_TIMES_UNTIL_SEND 50
+#define WAIT_TIMES_UNTIL_SEND 25
 //
 // Doorbell rang xxx times...
 //
@@ -458,9 +458,11 @@ void displayLogic(){
   void sendData(){
 
     if (numberOfTimesNotSend>WAIT_TIMES_UNTIL_SEND){
+
+      BT.print("{");
       BT.print("{\"firmware_version\":");
       BT.print("\"");
-      BT.print(FIRMWARE_VERSION);
+      BT.print("1.0.0");
       BT.print("\"");
       BT.print(",");
     

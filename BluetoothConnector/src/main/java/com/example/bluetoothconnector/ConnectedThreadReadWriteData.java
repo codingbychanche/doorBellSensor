@@ -73,7 +73,7 @@ public class ConnectedThreadReadWriteData extends Thread {
      */
     public void run() {
         // Read Data
-        byte[] inBuffer = new byte[1024];
+        byte[] inBuffer = new byte[2024];
 
         connectedInterface.sucess(this);
 

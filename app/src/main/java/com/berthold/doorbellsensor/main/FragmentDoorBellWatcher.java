@@ -17,6 +17,8 @@ import android.widget.TextView;
 import com.berthold.doorbellsensor.R;
 import com.example.bluetoothconnector.DecodedSensorData;
 
+import org.w3c.dom.Text;
+
 public class FragmentDoorBellWatcher extends Fragment {
 
     // Debug
@@ -24,7 +26,6 @@ public class FragmentDoorBellWatcher extends Fragment {
 
     // View model
     private MainViewModel mainViewModel;
-
 
     public static FragmentDoorBellWatcher newInstance() {
         return new FragmentDoorBellWatcher();
@@ -34,7 +35,6 @@ public class FragmentDoorBellWatcher extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-
 
         return inflater.inflate(R.layout.fragment_doorbell_watcher, container, false);
     }
@@ -48,8 +48,7 @@ public class FragmentDoorBellWatcher extends Fragment {
         Long time = System.currentTimeMillis();
 
         // UI
-        TextView dataView=view.findViewById(R.id.message);
-        dataView.setText("Hi");
+
 
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // View model and it's observers
@@ -63,12 +62,22 @@ public class FragmentDoorBellWatcher extends Fragment {
             @Override
             public void onChanged(@Nullable final DecodedSensorData received) {
                 long currentTime = System.currentTimeMillis();
-                //connectionHistoryView.append(currentTime + ">>Received:" + received + "\n");
                 Log.v(tag,received.getDoorbellRang()+"");
                 if (received.dataIsIncomplete()) {
                     Log.v(tag,"Incomplete data received....");
-                }else
-                    dataView.setText(received.getDoorbellRang());
+                }else {
+                    TextView dataView=view.findViewById(R.id.message);
+                    dataView.setText(received.getDoorbellRang()+"");
+
+                    TextView lockView=view.findViewById(R.id.bat_state);
+                    lockView.setText(received.getVoltageStatus()+"");
+
+                    TextView isSetView=view.findViewById(R.id.is_set_state);
+                    isSetView.setText(received.getSensSetState()+"");
+
+                    TextView tempView=view.findViewById(R.id.temperature);
+                    tempView.setText(received.getTempC()+"");
+                }
             }
         };
         mainViewModel.getbtReceivedData().observe(getActivity(), btReceiveDataObserver);
