@@ -13,6 +13,9 @@ import com.berthold.doorbellsensor.R;
 
 public class FragmentRangHistory extends Fragment {
 
+    // Debug
+    String tag;
+
     public static FragmentRangHistory newInstance() {
         return new FragmentRangHistory();
     }
@@ -21,14 +24,19 @@ public class FragmentRangHistory extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_rang_history, container, false);
+
+        return inflater.inflate(R.layout.fragment_doorbell_watcher, container, false);
     }
 
     @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
-        // TODO: Use the ViewModel
+        // Debug
+        tag = getClass().getSimpleName();
+        Long time = System.currentTimeMillis();
+
+        // UI
     }
 
 }

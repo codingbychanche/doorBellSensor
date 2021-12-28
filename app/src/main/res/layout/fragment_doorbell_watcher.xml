@@ -23,31 +23,47 @@
         android:id="@+id/temperature"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         android:hint="TEMP"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"></TextView>
+        app:layout_constraintTop_toTopOf="@+id/is_set_state"></TextView>
 
     <TextView
         android:id="@+id/bat_state"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
         android:hint="BAT"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"></TextView>
+        app:layout_constraintBottom_toBottomOf="@+id/battery_status_icon"
+        app:layout_constraintStart_toEndOf="@+id/battery_status_icon"
+        app:layout_constraintTop_toTopOf="@+id/battery_status_icon"></TextView>
 
     <TextView
         android:id="@+id/is_set_state"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
         android:hint="SET"
         app:layout_constraintEnd_toStartOf="@+id/temperature"
         app:layout_constraintStart_toEndOf="@+id/bat_state"
-        app:layout_constraintTop_toTopOf="parent"></TextView>
+        app:layout_constraintTop_toTopOf="@+id/bat_state"></TextView>
+
+    <ImageView
+        android:id="@+id/battery_status_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:src="@android:drawable/ic_lock_idle_low_battery"
+        app:layout_constraintBottom_toBottomOf="@+id/connection_status_icon"
+        app:layout_constraintStart_toEndOf="@+id/connection_status_icon"
+        app:layout_constraintTop_toTopOf="@+id/connection_status_icon" />
+
+    <ImageView
+        android:id="@+id/connection_status_icon"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@android:drawable/stat_sys_data_bluetooth"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"></ImageView>
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

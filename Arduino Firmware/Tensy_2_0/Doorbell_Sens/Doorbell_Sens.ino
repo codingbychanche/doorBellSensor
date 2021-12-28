@@ -83,7 +83,7 @@ long lastSens1ValueRead;
 int lastSensState;
 String sensSetState;
 int numberOfTimesNotSend;
-#define WAIT_TIMES_UNTIL_SEND 25
+#define WAIT_TIMES_UNTIL_SEND 55
 //
 // Doorbell rang xxx times...
 //
@@ -157,10 +157,6 @@ void setup() {
   // Settings button
   //
   pinMode(sensSetButton,INPUT_PULLUP);
-  //
-  // BT
-  //
-  BT.begin(115200);
   //
   //Setup HC05:
   //
@@ -293,23 +289,91 @@ void loop() {
       // Notify the connected device that the sensor has been uncovered
       // and show "alarm screen" immediadly.
       //
-      BT.println("on");
+      //BT.println("on");
       doorBellRang++;
       displayToShow=DOORBELL_SCREEN;
-    }
+
+      // Anything sens to the connected app will result in an alarm...
+      BT.print("rang");
+      }
     //
     // Detect if state has changed from uncovered to covered sensor
     //
-    if (lastSensState==1 && sensState==0) // 1 to means sensor has been covered...
+    if (lastSensState==1 && sensState==0); // 1 to means sensor has been covered...
       // 
       // Inform connected device...
       //
-      BT.println("off");
+      //BT.println("off");
   }
   //
   // Send all data read from the sensor, continiously via the BT connection...
   //
-  sendData();
+      /*
+      //BT.print("{");
+      //BT.print("{\"firmware_version\":");
+      //BT.print("\"");
+      //BT.print("1.0.0");
+      //BT.print("\"");
+      //BT.print(",");
+    
+    
+      //BT.print("\"hardware_status\":");
+      //BT.print("\"");
+      //BT.print("-");
+      //BT.print("\"");
+      //BT.print(",");
+    
+      BT.print("{\"voltage_status\":");
+      BT.print("\"");
+      BT.print(voltageStatus);
+      BT.print("\"");
+      BT.print(",");
+      
+      BT.print("\"temperature_degrees\":");
+      BT.print(temperatureC);
+      BT.print(",");
+      
+      BT.print("\"temperature_farenheit\":");
+      BT.print(temperatureF);
+      BT.print(",");
+  
+      BT.print("\"doorbell_rang\":");
+      BT.print(doorBellRang);
+      BT.print(",");
+  
+  
+      BT.print("\"on_to_off_state\":");
+      BT.print("\"");
+      BT.print("-");
+      BT.print("\"");
+      BT.print(",");
+  
+      BT.print("\"off_to_on_state\":");
+      BT.print("\"");
+      BT.print("-");
+      BT.print("\"");
+      BT.print(",");
+  
+      BT.print("\"sens_set_state\":");
+      BT.print("\"");
+      BT.print(sensSetState);
+      BT.print("\"");
+      BT.print(",");
+  
+      BT.print("\"sens_read\":");
+      BT.print(sens1);
+      BT.print(",");
+  
+      BT.print("\"sens_set_to\":");
+      BT.print(sens2);
+    
+      BT.println("}");
+      
+      delay(500);
+      */
+
+     
+      
   //
   // Repeat....
   //
@@ -459,65 +523,8 @@ void displayLogic(){
 
     if (numberOfTimesNotSend>WAIT_TIMES_UNTIL_SEND){
 
-      BT.print("{");
-      BT.print("{\"firmware_version\":");
-      BT.print("\"");
-      BT.print("1.0.0");
-      BT.print("\"");
-      BT.print(",");
-    
-    
-      BT.print("\"hardware_status\":");
-      BT.print("\"");
-      BT.print("-");
-      BT.print("\"");
-      BT.print(",");
-    
-      BT.print("\"voltage_status\":");
-      BT.print("\"");
-      BT.print(voltageStatus);
-      BT.print("\"");
-      BT.print(",");
       
-      BT.print("\"temperature_degrees\":");
-      BT.print(temperatureC);
-      BT.print(",");
-      
-      BT.print("\"temperature_farenheit\":");
-      BT.print(temperatureF);
-      BT.print(",");
-  
-      BT.print("\"doorbell_rang\":");
-      BT.print(doorBellRang);
-      BT.print(",");
-  
-  
-      BT.print("\"on_to_off_state\":");
-      BT.print("\"");
-      BT.print("-");
-      BT.print("\"");
-      BT.print(",");
-  
-      BT.print("\"off_to_on_state\":");
-      BT.print("\"");
-      BT.print("-");
-      BT.print("\"");
-      BT.print(",");
-  
-      BT.print("\"sens_set_state\":");
-      BT.print("\"");
-      BT.print(sensSetState);
-      BT.print("\"");
-      BT.print(",");
-  
-      BT.print("\"sens_read\":");
-      BT.print(sens1);
-      BT.print(",");
-  
-      BT.print("\"sens_set_to\":");
-      BT.print(sens2);
-    
-      BT.println("}");
+
       numberOfTimesNotSend=0;
     }
     numberOfTimesNotSend++;

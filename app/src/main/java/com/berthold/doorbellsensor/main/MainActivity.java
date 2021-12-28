@@ -11,6 +11,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.Html;
@@ -115,6 +116,7 @@ public class MainActivity extends AppCompatActivity implements BTConnectedInterf
             }
         });
 
+        /////////////////////////////////////////////////// Sends commands to the connected device ///////////////////////////////////////////////////////////
         //
         // Sends messages to the connected device...
         //
@@ -142,7 +144,7 @@ public class MainActivity extends AppCompatActivity implements BTConnectedInterf
             }
         });
 
-        /////////////////////////////////////////////////// Sends commands to the connected device ///////////////////////////////////////////////////////////
+        //
         // Reset doorbell counter
         //
         resetDoorBellCounterView = findViewById(R.id.reset_doorbell_counter_on_dev);
@@ -185,7 +187,12 @@ public class MainActivity extends AppCompatActivity implements BTConnectedInterf
         //
         mainViewModel = new ViewModelProvider(this).get(MainViewModel.class);
 
+        //
         // BT- Status
+        //
+        // Receives status messages while the connection is beeing established or
+        // destroyed.
+        //
         final Observer<String> btStatusObserver = new Observer<String>() {
             @Override
             public void onChanged(@Nullable final String status) {
@@ -194,7 +201,11 @@ public class MainActivity extends AppCompatActivity implements BTConnectedInterf
         };
         mainViewModel.getBtStatusMessage().observe(this, btStatusObserver);
 
+        //
         // BT- error messages
+        //
+        // Yes, all error messages arrive here.
+        //
         final Observer<String> btErrorObserver = new Observer<String>() {
             @Override
             public void onChanged(@Nullable final String error) {
@@ -202,16 +213,21 @@ public class MainActivity extends AppCompatActivity implements BTConnectedInterf
                 reconnect.startAnimation(fadeInAnim);
                 long currentTime = System.currentTimeMillis();
                 connectionHistoryView.append(currentTime + ">>" + error + "\n");
+                //mainViewModel.btErrorMessage.postValue(error);
             }
         };
         mainViewModel.getBtErrorMessage().observe(this, btErrorObserver);
 
+        //
         // BT- success ,message. Called every time a connection could be established
+        //
+        //
         final Observer<String> btSuccessObserver = new Observer<String>() {
             @Override
             public void onChanged(@Nullable final String success) {
                 long currentTime = System.currentTimeMillis();
                 connectionHistoryView.append(currentTime + ">>" + success + "\n");
+                //mainViewModel.btSucessMessage.postValue(success);
             }
         };
         mainViewModel.getbtSucessMessage().observe(this, btSuccessObserver);
@@ -221,6 +237,7 @@ public class MainActivity extends AppCompatActivity implements BTConnectedInterf
         // Establish connection
         //
         // Check if bluetooth is enabled
+
         BluetoothManager bm = (BluetoothManager) getSystemService(BLUETOOTH_SERVICE);
         BluetoothAdapter bluetoothAdapter = bm.getAdapter();
 
@@ -232,6 +249,7 @@ public class MainActivity extends AppCompatActivity implements BTConnectedInterf
             startActivityForResult(bluetoothIntent, 1);
         }
         connectToDeviceLogic();
+
 
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Show all associated fragments....
@@ -250,7 +268,7 @@ public class MainActivity extends AppCompatActivity implements BTConnectedInterf
     /**
      * Callback when a connection was established.
      * <p>
-     * Receives an instance of the {@link  } over which
+     * Receives an instance of {@link ConnectedThreadReadWriteData}over which
      * data can be send to the connected device.
      */
     @Override
@@ -270,16 +288,21 @@ public class MainActivity extends AppCompatActivity implements BTConnectedInterf
         //
         connectedThreadReadWriteData.send(COMMAND_SEND_MESSAGE);
         connectedThreadReadWriteData.send(mainViewModel.messageLogic(mainViewModel.MESSAGE_HOME));
+
     }
 
     /**
      * Publishes received data to all observers...
      *
-     * @param d
+     * @param d {@link DecodedSensorData} instance which contains all data received from the
+     *          connected device.
      */
     @Override
     public void receiveDataFromBTDevice(DecodedSensorData d) {
         mainViewModel.btReceivedData.postValue(d);
+
+        MediaPlayer mpPlayer = MediaPlayer.create(getApplicationContext(), R.raw.coin);
+        mpPlayer.start();
     }
 
     /**

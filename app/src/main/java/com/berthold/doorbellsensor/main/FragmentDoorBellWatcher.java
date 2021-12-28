@@ -12,6 +12,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.berthold.doorbellsensor.R;
@@ -56,7 +57,19 @@ public class FragmentDoorBellWatcher extends Fragment {
         mainViewModel= ViewModelProviders.of(requireActivity()).get(MainViewModel.class);
 
         //
-        // BT- receive data
+        // Device was connected successfully....
+        //
+        final  Observer<String> btConnectionSuccess=new Observer<String>() {
+            @Override
+            public void onChanged(String s) {
+                ImageView btSucessIcon=view.findViewById(R.id.connection_status_icon);
+                btSucessIcon.setVisibility(View.VISIBLE);
+            }
+        };
+        mainViewModel.getbtSucessMessage().observe(getActivity(),btConnectionSuccess);
+
+        //
+        // BT- receive data from device....
         //
         final Observer<DecodedSensorData> btReceiveDataObserver = new Observer<DecodedSensorData>() {
             @Override

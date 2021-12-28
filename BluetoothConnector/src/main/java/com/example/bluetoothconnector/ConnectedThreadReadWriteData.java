@@ -89,24 +89,6 @@ public class ConnectedThreadReadWriteData extends Thread {
                     readBytes++;
                 }
 
-                // Animate to show, connection is alive!
-                animate();
-
-                // Wait before next data chunk arrives.
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                }
-
-                // Animate to show, connection is alive!
-                animate();
-
-                // This part is only for the animation.....
-                try {
-                    Thread.sleep(500);
-                } catch (InterruptedException e) {
-                }
-
                 // OK update display
                 dataChunksActuallySend++;
                 connectedInterface.receiveDataFromBTDevice(DecodeSensorData.decodeJson(receivedJsonData));
@@ -126,6 +108,13 @@ public class ConnectedThreadReadWriteData extends Thread {
         } catch (IOException e) {
             connectedInterface.receiveErrorMessage(tag + " Could not send....Reason:" + e.toString());
         }
+    }
+
+    /**
+     * Delivers the input stream...
+     */
+    public InputStream getInputStream(){
+        return mIs;
     }
 
     /**
