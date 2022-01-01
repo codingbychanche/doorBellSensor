@@ -105,22 +105,24 @@ int displayIsLocked=FALSE;
 #define TITLE_SCREEN 1
 String titleScreen;
 
-#define SETTINGS_SCREEN 3
-#define SENSOR_READINGS_SCREEN 4
+#define SETTINGS_SCREEN 2
+#define SENSOR_READINGS_SCREEN 3
 
-#define MESSAGE_SCREEN 5
+#define MESSAGE_SCREEN 4
 char incommingMessage[255];
 int x, minX; // Parameters used to scroll large messages...
 //
-// Command mnomics
+// Command mnemoics
 //
-#define COMMAND_LENGTH 4 // Leading bytes of a received string contain the command to evaluate....
-#define RESET_COUNTER   "rsct"
-#define GET_COUNTER     "gtct" 
-#define RECEIVE_MESSAGE "rmsg"  
-#define LOCK_KEYS       "lock"
-#define UNLOCK_KEYS     "ulck"
-#define SET_SENSITIVITY "ssns"
+#define COMMAND_LENGTH 4        // # of leading bytes of a received string contain the command to evaluate....
+#define RESET_COUNTER   "rsct"  // Reset doorbell counter
+#define GET_COUNTER     "gtct"  // Get the present value and send to connected device
+#define RECEIVE_MESSAGE "rmsg"  // A message was send from the connected device, receive and display  
+#define LOCK_KEYS       "lock"  // Locks the keys connected to the sensor
+#define UNLOCK_KEYS     "ulck"  // Unlock..
+#define SET_SENSITIVITY "ssns"  // The current value from the sensor is saved.
+#define NEXT_SCREEN     "incs"  // Next screen on display.
+#define LAST_SCREEN     "decs"  // Previous screen on display
 //
 // Max30102/05
 //
@@ -169,17 +171,22 @@ void setup() {
   //
   pinMode(VOLTAGE_CHECK_PIN,INPUT_PULLUP);
   pinMode(VOLTAGE_LOW_WARNING_PIN,OUTPUT);
-  digitalWrite(VOLTAGE_LOW_WARNING_PIN,LOW);
+  digitalWrite(VOLTAGE_LOW_WARNING_PIN,LOW); 
   //  
   // Configure Max30105
   //
   if (doorBellSensor.begin() == false)
   {
     BT.println("MAX30105 was not found. Please check wiring/power. ");
+     display.setTextSize(1);      
+    display.setCursor(0,10);             
+    display.println("RetroZock 2021");
+    display.println(FIRMWARE_VERSION);
+    display.display();
+
     while (1);
   }
   doorBellSensor.setup();
-
   sensSetState="Not Set";
 }
 
@@ -195,6 +202,8 @@ void loop() {
  
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // Receive data via the BT connection and evaluate if and which commands are received...
+  //
+  //
   //
   char receivedData[255];
   while (BT.available()>0){
@@ -244,6 +253,33 @@ void loop() {
       strcpy(incommingMessage,&receivedData[COMMAND_LENGTH]);
       x=display.width();                  // This info is needed to scroll lang message strings accros the screen horizontaly...
       minX=-12*strlen(incommingMessage);  // 12 pixels per char for textsize=2
+    }
+    //
+    // Set sensitivity
+    //
+    if (strcmp(connectionStatus,SET_SENSITIVITY)==0){
+      sens2=sens1;
+      sensSetState="Set";
+    }
+    //
+    // Display next screen
+    //
+    if (strcmp(connectionStatus,NEXT_SCREEN)==0){
+      if (displayToShow<NUMBER_OF_SCREENS){
+        displayToShow++;
+      }else{ 
+        displayToShow=DOORBELL_SCREEN;
+      }
+    }
+    //
+    // Display previous screen
+    //
+    if (strcmp(connectionStatus,LAST_SCREEN)==0){
+      if (displayToShow>0){
+        displayToShow--;
+      }else{ 
+        displayToShow=NUMBER_OF_SCREENS;
+      }
     }
   index=0;
   }
@@ -371,9 +407,6 @@ void loop() {
       
       delay(500);
       */
-
-     
-      
   //
   // Repeat....
   //
@@ -522,8 +555,6 @@ void displayLogic(){
   void sendData(){
 
     if (numberOfTimesNotSend>WAIT_TIMES_UNTIL_SEND){
-
-      
 
       numberOfTimesNotSend=0;
     }
