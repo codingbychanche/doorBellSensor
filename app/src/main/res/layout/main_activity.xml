@@ -25,7 +25,6 @@
     <ImageButton
         android:id="@+id/reset_doorbell_counter_on_dev"
         android:src="@android:drawable/ic_menu_close_clear_cancel"
-        android:background="@drawable/background_corner_rounded"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:layout_constraintEnd_toEndOf="parent"
@@ -39,6 +38,22 @@
         app:layout_constraintBottom_toBottomOf="@+id/reset_doorbell_counter_on_dev"
         app:layout_constraintStart_toStartOf="@+id/fragment_dorbell_rag_list"
         app:layout_constraintTop_toTopOf="@+id/reset_doorbell_counter_on_dev" />
+
+    <ImageButton
+        android:id="@+id/next_screen"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@android:drawable/ic_media_ff"
+        app:layout_constraintEnd_toStartOf="@+id/reset_doorbell_counter_on_dev"
+        app:layout_constraintTop_toTopOf="@+id/reset_doorbell_counter_on_dev"></ImageButton>
+
+    <ImageButton
+        android:id="@+id/prev_screen"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@android:drawable/ic_media_rew"
+        app:layout_constraintEnd_toStartOf="@+id/next_screen"
+        app:layout_constraintTop_toTopOf="@+id/reset_doorbell_counter_on_dev"></ImageButton>
 
     <Spinner
         android:id="@+id/message_select_spinner"
@@ -55,7 +70,7 @@
         android:layout_height="0dp"
         android:background="@drawable/background_corner_rounded"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/reset_doorbell_counter_on_dev"
+        app:layout_constraintTop_toBottomOf="@+id/prev_screen"
         tools:layout_editor_absoluteX="10dp">
 
         <TextView

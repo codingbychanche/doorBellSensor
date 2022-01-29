@@ -65,7 +65,7 @@ String voltageStatus;
 //
 // Settings buttons
 //
-int sensSetButton=11;
+int sensSetButton=PIN_D6;
 //
 // Sensitivity setting...
 //
@@ -96,7 +96,7 @@ float temperatureC,temperatureF;
 // Display logic
 //
 int displayToShow;
-int displaySelectButton = 10;
+int displaySelectButton = PIN_C7;
 int displayIsLocked=FALSE;
 
 #define NUMBER_OF_SCREENS 4
@@ -344,7 +344,7 @@ void loop() {
   //
   // Send all data read from the sensor, continiously via the BT connection...
   //
-      /*
+      
       //BT.print("{");
       //BT.print("{\"firmware_version\":");
       //BT.print("\"");
@@ -358,7 +358,8 @@ void loop() {
       //BT.print("-");
       //BT.print("\"");
       //BT.print(",");
-    
+
+      /*
       BT.print("{\"voltage_status\":");
       BT.print("\"");
       BT.print(voltageStatus);
@@ -404,9 +405,8 @@ void loop() {
       BT.print(sens2);
     
       BT.println("}");
-      
-      delay(500);
       */
+      
   //
   // Repeat....
   //

@@ -1,9 +1,14 @@
 package com.berthold.doorbellsensor.main;
 
+import android.util.Log;
+
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.example.bluetoothconnector.DecodedSensorData;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainViewModel extends ViewModel {
 
@@ -14,23 +19,25 @@ public class MainViewModel extends ViewModel {
 
     /**
      * Live data.
-     *
      */
-     public MutableLiveData<String> btStatusMessage;
-     public MutableLiveData<String> getBtStatusMessage(){
-     if (btStatusMessage==null)
-     btStatusMessage=new MutableLiveData<String>();
-     return btStatusMessage;
-     }
+    public MutableLiveData<String> btStatusMessage;
+
+    public MutableLiveData<String> getBtStatusMessage() {
+        if (btStatusMessage == null)
+            btStatusMessage = new MutableLiveData<String>();
+        return btStatusMessage;
+    }
 
     public MutableLiveData<String> btErrorMessage;
-    public MutableLiveData<String> getBtErrorMessage(){
-        if (btErrorMessage==null)
-            btErrorMessage=new MutableLiveData<String>();
+
+    public MutableLiveData<String> getBtErrorMessage() {
+        if (btErrorMessage == null)
+            btErrorMessage = new MutableLiveData<String>();
         return btErrorMessage;
     }
 
     public MutableLiveData<String> btSucessMessage;
+
     public MutableLiveData<String> getbtSucessMessage() {
         if (btSucessMessage == null)
             btSucessMessage = new MutableLiveData<String>();
@@ -38,10 +45,38 @@ public class MainViewModel extends ViewModel {
     }
 
     public MutableLiveData<DecodedSensorData> btReceivedData;
+
     public MutableLiveData<DecodedSensorData> getbtReceivedData() {
         if (btReceivedData == null)
             btReceivedData = new MutableLiveData<DecodedSensorData>();
         return btReceivedData;
+    }
+
+    private ArrayList<String>rangHistotyDataList;
+    public MutableLiveData<ArrayList<String>> rangHistoryList;
+    public MutableLiveData<ArrayList<String>> getRangHistoryList() {
+        //
+        // Check if the list contains any data, if so
+        // just return it. If not, init it for the first time....
+        //
+        if (rangHistoryList == null) {
+            //
+            // Init list for the first time
+            //
+            rangHistotyDataList=new ArrayList<String>();
+            rangHistotyDataList.add("No Calls...");
+            rangHistoryList = new MutableLiveData<>();
+            //
+            // This is important, even if there is no active
+            // observer, this has to be done to fill the
+            // associated live data object with data!
+            //
+            // If you just want to return an empty list
+            // (or any other object) skip this step!
+            //
+            rangHistoryList.setValue(rangHistotyDataList);
+        }
+        return rangHistoryList;
     }
 
     /**

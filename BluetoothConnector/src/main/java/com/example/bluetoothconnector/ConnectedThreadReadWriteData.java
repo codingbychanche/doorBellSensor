@@ -15,6 +15,7 @@ package com.example.bluetoothconnector;
 import android.bluetooth.BluetoothSocket;
 import android.text.Html;
 import android.text.Spanned;
+import android.util.Log;
 import android.widget.TextView;
 
 import java.io.IOException;

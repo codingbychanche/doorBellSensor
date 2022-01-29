@@ -69,11 +69,13 @@ public class MainActivity extends AppCompatActivity implements BTConnectedInterf
     private final static String COMMAND_SEND_MESSAGE = "rmsg";
     private final static String COMMAND_LOCK = "lock";
     private final static String COMMAND_UNLOCK = "ulck";
+    private final static String COMMAND_NEXT_SCREEN="incs";
+    private final static String COMMAND_PREV_SCREEN="decs";
 
     // UI
     private FloatingActionButton reconnect, connectToAnotherDevice;
     private TextView connectedDeviceNameAndAddreeView, connectionHistoryView;
-    private ImageButton resetDoorBellCounterView;
+    private ImageButton resetDoorBellCounterView,nextScreenView,prevScreenView;
     private Switch lockDeviceView;
     private Spinner sendMessageSelectView;
 
@@ -182,6 +184,32 @@ public class MainActivity extends AppCompatActivity implements BTConnectedInterf
             }
         });
 
+        //
+        // Advance one screen displayed on the connected device
+        //
+        nextScreenView=findViewById(R.id.next_screen);
+        nextScreenView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                connectedThreadReadWriteData.send(COMMAND_NEXT_SCREEN);
+                long currentTime = System.currentTimeMillis();
+                connectionHistoryView.append(currentTime+">>Next screen");
+            }
+        });
+
+        //
+        // Go one screen back on the connected device.
+        //
+        prevScreenView=findViewById(R.id.prev_screen);
+        prevScreenView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                connectedThreadReadWriteData.send(COMMAND_PREV_SCREEN);
+                long currentTime = System.currentTimeMillis();
+                connectionHistoryView.append(currentTime+">>Last screen");
+            }
+        });
+
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // View model and it's observers
         //
@@ -237,7 +265,6 @@ public class MainActivity extends AppCompatActivity implements BTConnectedInterf
         // Establish connection
         //
         // Check if bluetooth is enabled
-
         BluetoothManager bm = (BluetoothManager) getSystemService(BLUETOOTH_SERVICE);
         BluetoothAdapter bluetoothAdapter = bm.getAdapter();
 
@@ -249,7 +276,6 @@ public class MainActivity extends AppCompatActivity implements BTConnectedInterf
             startActivityForResult(bluetoothIntent, 1);
         }
         connectToDeviceLogic();
-
 
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Show all associated fragments....
@@ -300,9 +326,6 @@ public class MainActivity extends AppCompatActivity implements BTConnectedInterf
     @Override
     public void receiveDataFromBTDevice(DecodedSensorData d) {
         mainViewModel.btReceivedData.postValue(d);
-
-        MediaPlayer mpPlayer = MediaPlayer.create(getApplicationContext(), R.raw.coin);
-        mpPlayer.start();
     }
 
     /**
@@ -327,7 +350,6 @@ public class MainActivity extends AppCompatActivity implements BTConnectedInterf
     // Would be nice if I could move this code to the view model. For he time beeing using the view model
     // helped me to avoid working with handlers to access UI components
     //
-
     /**
      * When bt is turned on or it was turned on, this checks if a
      * device address was stored in shared prefs and if so, get the

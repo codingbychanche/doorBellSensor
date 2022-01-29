@@ -1,5 +1,6 @@
 package com.berthold.doorbellsensor.main;
 
+import android.media.MediaPlayer;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -16,11 +17,13 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.berthold.doorbellsensor.R;
+import com.example.bluetoothconnector.BTConnectedInterface;
+import com.example.bluetoothconnector.ConnectedThreadReadWriteData;
 import com.example.bluetoothconnector.DecodedSensorData;
 
 import org.w3c.dom.Text;
 
-public class FragmentDoorBellWatcher extends Fragment {
+public class FragmentDoorBellWatcher extends Fragment implements BTConnectedInterface {
 
     // Debug
     private String tag;
@@ -48,9 +51,6 @@ public class FragmentDoorBellWatcher extends Fragment {
         tag = getClass().getSimpleName();
         Long time = System.currentTimeMillis();
 
-        // UI
-
-
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // View model and it's observers
         //
@@ -76,8 +76,22 @@ public class FragmentDoorBellWatcher extends Fragment {
             public void onChanged(@Nullable final DecodedSensorData received) {
                 long currentTime = System.currentTimeMillis();
                 Log.v(tag,received.getDoorbellRang()+"");
+
+                // ToDo Data dend from the device is not processed fas enough. So it takes
+                // to long to receive a complete data set (error free json- string)
+                // to be practical....
+                //
+                // For the time being the device will send  arbitrary data when
+                // the doorbell sensor was uncovered. This is detected here and
+                // a doorbell event will be recorded.....
+
                 if (received.dataIsIncomplete()) {
                     Log.v(tag,"Incomplete data received....");
+
+                    // OK, inform user, doorbell has rang......
+                    MediaPlayer mpPlayer = MediaPlayer.create(requireActivity(), R.raw.coin);
+                    mpPlayer.start();
+
                 }else {
                     TextView dataView=view.findViewById(R.id.message);
                     dataView.setText(received.getDoorbellRang()+"");
@@ -94,5 +108,34 @@ public class FragmentDoorBellWatcher extends Fragment {
             }
         };
         mainViewModel.getbtReceivedData().observe(getActivity(), btReceiveDataObserver);
+    }
+
+    @Override
+    public void sucess(ConnectedThreadReadWriteData connectedThreadReadWriteData) {
+
+    }
+
+    @Override
+    public void receiveDataFromBTDevice(DecodedSensorData d) {
+        mainViewModel.btReceivedData.postValue(d);
+        Log.v("INTERFACETEST","Got data");
+    }
+
+    /**
+     * Callback receive status message from connected device.
+     */
+    @Override
+    public void receiveStatusMessage(String status) {
+        Log.v(tag, status);
+        mainViewModel.btStatusMessage.postValue(status);
+    }
+
+    /**
+     * Receive error message
+     */
+    @Override
+    public void receiveErrorMessage(String error) {
+        Log.v(tag, error);
+        mainViewModel.btErrorMessage.postValue(error);
     }
 }
