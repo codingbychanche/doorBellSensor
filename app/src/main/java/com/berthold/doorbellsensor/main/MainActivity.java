@@ -237,8 +237,11 @@ public class MainActivity extends AppCompatActivity implements BTConnectedInterf
         final Observer<String> btErrorObserver = new Observer<String>() {
             @Override
             public void onChanged(@Nullable final String error) {
-                connectToAnotherDevice.startAnimation(fadeInAnim);
-                reconnect.startAnimation(fadeInAnim);
+                //connectToAnotherDevice.startAnimation(fadeInAnim);
+                connectToAnotherDevice.show();
+                // reconnect.startAnimation(fadeInAnim);
+                 // reconnect.setEnabled(true);
+                reconnect.show();
                 long currentTime = System.currentTimeMillis();
                 connectionHistoryView.append(currentTime + ">>" + error + "\n");
                 //mainViewModel.btErrorMessage.postValue(error);
@@ -305,7 +308,10 @@ public class MainActivity extends AppCompatActivity implements BTConnectedInterf
         this.connectedThreadReadWriteData = connectedThreadReadWriteData;
 
         connectToAnotherDevice.startAnimation(fadeOutAnim);
+        connectToAnotherDevice.setEnabled(false);
         reconnect.startAnimation(fadeOutAnim);
+        reconnect.setEnabled(false);
+
 
         currentStateSaveToSharedPref(addressOfCurrentDevice);
 

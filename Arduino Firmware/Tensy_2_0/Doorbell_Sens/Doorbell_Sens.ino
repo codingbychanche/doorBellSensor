@@ -239,20 +239,15 @@ void loop() {
       BT.println(doorBellRang);
       
     //
-    // Changes to the message screen
-    //
-    if (strncmp(connectionStatus,RECEIVE_MESSAGE,COMMAND_LENGTH)==0)
-      displayToShow=MESSAGE_SCREEN;
-    
-    //
     // Sets the message on the message screen.
     // Precondition: The message screen must be displayed at the time the
     // command is given.
     //
-    if (displayToShow==MESSAGE_SCREEN && strncmp(connectionStatus,RECEIVE_MESSAGE,COMMAND_LENGTH)==0){
+    if (strncmp(connectionStatus,RECEIVE_MESSAGE,COMMAND_LENGTH)==0){
       strcpy(incommingMessage,&receivedData[COMMAND_LENGTH]);
       x=display.width();                  // This info is needed to scroll lang message strings accros the screen horizontaly...
       minX=-12*strlen(incommingMessage);  // 12 pixels per char for textsize=2
+       displayToShow=MESSAGE_SCREEN;
     }
     //
     // Set sensitivity
@@ -344,17 +339,19 @@ void loop() {
   //
   // Send all data read from the sensor, continiously via the BT connection...
   //
-
-  if (displayToShow != SETTINGS_SCREEN && displayToShow != SENSOR_READINGS_SCREEN){
+  if (displayToShow != SETTINGS_SCREEN && displayToShow != SENSOR_READINGS_SCREEN){ // Do not dend and therefore trigger a possible alarm when settimgs are being done.
     
       // Short data chunks seem to be working :-)
-
+      //
+      // For the time being the receiving device evaluates if the doorbell has rang
+      // by comparing last counter state with reveived cunter state. If 
+      // an increase is detected, somebody must have rang.....
+      //
+      // 
       String d=d+"{\"doorbell_rang\":"+doorBellRang+",\"sens_set_to\":"+sens2+"}";
       BT.println(d);
       d="";
   }
-      
-      
   //
   // Repeat....
   //
