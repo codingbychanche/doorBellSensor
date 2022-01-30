@@ -88,11 +88,18 @@ public class ConnectedThreadReadWriteData extends Thread {
                 while (readBytes != length) {
                     receivedJsonData = new String(inBuffer, 0, length);
                     readBytes++;
+
+
                 }
 
                 // OK update display
                 dataChunksActuallySend++;
                 connectedInterface.receiveDataFromBTDevice(DecodeSensorData.decodeJson(receivedJsonData));
+
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                }
             }
 
         } catch (IOException e) {

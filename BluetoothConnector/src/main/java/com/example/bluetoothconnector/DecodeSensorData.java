@@ -40,7 +40,7 @@ public class DecodeSensorData {
             if (jo.has("off_to_on_state")) decodedSensorData.setOnToOffState(jo.getString("off_to_on_state"));
             if (jo.has("sens_set_state")) decodedSensorData.setSensSetState(jo.getString("sens_set_state"));
             if (jo.has("sens_read")) decodedSensorData.setSensReadData(jo.getLong("sens_read"));
-            if (jo.has("sens_set_to")) decodedSensorData.setSensReadData(jo.getLong("sens_set_to"));
+            if (jo.has("sens_set_to")) decodedSensorData.setSensSetTo(jo.getLong("sens_set_to"));
             decodedSensorData.declareDataAsComplete();
         }catch (JSONException e) {
             Log.v(tag,e.toString());

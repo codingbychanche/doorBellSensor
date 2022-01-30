@@ -344,68 +344,16 @@ void loop() {
   //
   // Send all data read from the sensor, continiously via the BT connection...
   //
-      
-      //BT.print("{");
-      //BT.print("{\"firmware_version\":");
-      //BT.print("\"");
-      //BT.print("1.0.0");
-      //BT.print("\"");
-      //BT.print(",");
-    
-    
-      //BT.print("\"hardware_status\":");
-      //BT.print("\"");
-      //BT.print("-");
-      //BT.print("\"");
-      //BT.print(",");
 
-      /*
-      BT.print("{\"voltage_status\":");
-      BT.print("\"");
-      BT.print(voltageStatus);
-      BT.print("\"");
-      BT.print(",");
-      
-      BT.print("\"temperature_degrees\":");
-      BT.print(temperatureC);
-      BT.print(",");
-      
-      BT.print("\"temperature_farenheit\":");
-      BT.print(temperatureF);
-      BT.print(",");
-  
-      BT.print("\"doorbell_rang\":");
-      BT.print(doorBellRang);
-      BT.print(",");
-  
-  
-      BT.print("\"on_to_off_state\":");
-      BT.print("\"");
-      BT.print("-");
-      BT.print("\"");
-      BT.print(",");
-  
-      BT.print("\"off_to_on_state\":");
-      BT.print("\"");
-      BT.print("-");
-      BT.print("\"");
-      BT.print(",");
-  
-      BT.print("\"sens_set_state\":");
-      BT.print("\"");
-      BT.print(sensSetState);
-      BT.print("\"");
-      BT.print(",");
-  
-      BT.print("\"sens_read\":");
-      BT.print(sens1);
-      BT.print(",");
-  
-      BT.print("\"sens_set_to\":");
-      BT.print(sens2);
+  if (displayToShow != SETTINGS_SCREEN && displayToShow != SENSOR_READINGS_SCREEN){
     
-      BT.println("}");
-      */
+      // Short data chunks seem to be working :-)
+
+      String d=d+"{\"doorbell_rang\":"+doorBellRang+",\"sens_set_to\":"+sens2+"}";
+      BT.println(d);
+      d="";
+  }
+      
       
   //
   // Repeat....

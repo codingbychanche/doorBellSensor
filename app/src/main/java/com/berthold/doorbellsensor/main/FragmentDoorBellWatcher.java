@@ -31,6 +31,9 @@ public class FragmentDoorBellWatcher extends Fragment implements BTConnectedInte
     // View model
     private MainViewModel mainViewModel;
 
+    // Doorbell count
+    private int doorBellRangTimes = 0;
+
     public static FragmentDoorBellWatcher newInstance() {
         return new FragmentDoorBellWatcher();
     }
@@ -54,19 +57,19 @@ public class FragmentDoorBellWatcher extends Fragment implements BTConnectedInte
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // View model and it's observers
         //
-        mainViewModel= ViewModelProviders.of(requireActivity()).get(MainViewModel.class);
+        mainViewModel = ViewModelProviders.of(requireActivity()).get(MainViewModel.class);
 
         //
         // Device was connected successfully....
         //
-        final  Observer<String> btConnectionSuccess=new Observer<String>() {
+        final Observer<String> btConnectionSuccess = new Observer<String>() {
             @Override
             public void onChanged(String s) {
-                ImageView btSucessIcon=view.findViewById(R.id.connection_status_icon);
+                ImageView btSucessIcon = view.findViewById(R.id.connection_status_icon);
                 btSucessIcon.setVisibility(View.VISIBLE);
             }
         };
-        mainViewModel.getbtSucessMessage().observe(getActivity(),btConnectionSuccess);
+        mainViewModel.getbtSucessMessage().observe(getActivity(), btConnectionSuccess);
 
         //
         // BT- receive data from device....
@@ -75,35 +78,48 @@ public class FragmentDoorBellWatcher extends Fragment implements BTConnectedInte
             @Override
             public void onChanged(@Nullable final DecodedSensorData received) {
                 long currentTime = System.currentTimeMillis();
-                Log.v(tag,received.getDoorbellRang()+"");
+                Log.v(tag, received.getDoorbellRang() + "");
 
-                // ToDo Data dend from the device is not processed fas enough. So it takes
-                // to long to receive a complete data set (error free json- string)
-                // to be practical....
                 //
-                // For the time being the device will send  arbitrary data when
-                // the doorbell sensor was uncovered. This is detected here and
-                // a doorbell event will be recorded.....
-
+                // Check if we received data, check if is complete and if so
+                // display the data received.....
+                //
                 if (received.dataIsIncomplete()) {
-                    Log.v(tag,"Incomplete data received....");
+                    Log.v(tag, "Incomplete data received....");
 
-                    // OK, inform user, doorbell has rang......
-                    MediaPlayer mpPlayer = MediaPlayer.create(requireActivity(), R.raw.coin);
-                    mpPlayer.start();
+                } else {
+                    //
+                    // Doorbell counter changed on connected device?
+                    //
+                    if (received.getDoorbellRang() > doorBellRangTimes) {
 
-                }else {
-                    TextView dataView=view.findViewById(R.id.message);
-                    dataView.setText(received.getDoorbellRang()+"");
+                        // OK, inform user, doorbell has rang......
+                        MediaPlayer mpPlayer = MediaPlayer.create(requireActivity(), R.raw.coin);
+                        mpPlayer.start();
 
-                    TextView lockView=view.findViewById(R.id.bat_state);
-                    lockView.setText(received.getVoltageStatus()+"");
+                        doorBellRangTimes = received.getDoorbellRang();
+                    }
 
-                    TextView isSetView=view.findViewById(R.id.is_set_state);
-                    isSetView.setText(received.getSensSetState()+"");
+                    if (received.getDoorbellRang()==0) {
+                        doorBellRangTimes = received.getDoorbellRang();
+                    }
 
-                    TextView tempView=view.findViewById(R.id.temperature);
-                    tempView.setText(received.getTempC()+"");
+                    TextView dataView = view.findViewById(R.id.message);
+                    dataView.setText(received.getDoorbellRang() + "");
+
+                    //
+                    // Display other data....
+                    //
+                    TextView lockView = view.findViewById(R.id.bat_state);
+                    lockView.setText(received.getVoltageStatus() + "");
+
+                    TextView isSetView = view.findViewById(R.id.is_set_state);
+                    isSetView.setText(received.getSensSetTo() + "");
+
+                    TextView tempView = view.findViewById(R.id.temperature);
+                    tempView.setText(received.getTempC() + "");
+
+                    Log.v(tag, "Received:" + received.getDoorbellRang() + "   " + received.getSensSetTo());
                 }
             }
         };
@@ -118,7 +134,7 @@ public class FragmentDoorBellWatcher extends Fragment implements BTConnectedInte
     @Override
     public void receiveDataFromBTDevice(DecodedSensorData d) {
         mainViewModel.btReceivedData.postValue(d);
-        Log.v("INTERFACETEST","Got data");
+        Log.v("INTERFACETEST", "Got data");
     }
 
     /**
