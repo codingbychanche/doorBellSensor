@@ -88,8 +88,6 @@ public class ConnectedThreadReadWriteData extends Thread {
                 while (readBytes != length) {
                     receivedJsonData = new String(inBuffer, 0, length);
                     readBytes++;
-
-
                 }
 
                 // OK update display

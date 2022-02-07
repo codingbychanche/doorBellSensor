@@ -7,6 +7,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -32,6 +33,7 @@ import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.berthold.doorbellsensor.JobService.JobServiceAlarmListenerForBTIncomming;
 import com.berthold.doorbellsensor.R;
 import com.example.bluetoothconnector.*;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -218,7 +220,7 @@ public class MainActivity extends AppCompatActivity implements BTConnectedInterf
         //
         // BT- Status
         //
-        // Receives status messages while the connection is beeing established or
+        // Receives status messages while the connection is being established or
         // destroyed.
         //
         final Observer<String> btStatusObserver = new Observer<String>() {
@@ -263,6 +265,26 @@ public class MainActivity extends AppCompatActivity implements BTConnectedInterf
         };
         mainViewModel.getbtSucessMessage().observe(this, btSuccessObserver);
 
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Broadcast receivers.
+        //
+        BroadcastReceiver r = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                String timeOfAlarm=intent.getStringExtra("alarmReceived");
+                Log.v("MAIN_RECEIVED:", timeOfAlarm);
+
+                // Alarm....
+                MediaPlayer mpPlayer = MediaPlayer.create(getApplicationContext(), R.raw.sound);
+                mpPlayer.start();
+
+                mainViewModel.btSucessMessage.postValue(timeOfAlarm+"  Alarm");
+
+
+            }
+        };
+        registerReceiver(r, new IntentFilter("com.berthold.servicejobintentservice.CUSTOM_INTENT"));
+
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         //
         // Establish connection
@@ -298,7 +320,10 @@ public class MainActivity extends AppCompatActivity implements BTConnectedInterf
      * Callback when a connection was established.
      * <p>
      * Receives an instance of {@link ConnectedThreadReadWriteData}over which
-     * data can be send to the connected device.
+     * data can be send to the connected device or data can be received.
+     * <p>
+     *
+     *
      */
     @Override
     public void sucess(ConnectedThreadReadWriteData connectedThreadReadWriteData) {
@@ -308,9 +333,9 @@ public class MainActivity extends AppCompatActivity implements BTConnectedInterf
         this.connectedThreadReadWriteData = connectedThreadReadWriteData;
 
         connectToAnotherDevice.startAnimation(fadeOutAnim);
-        connectToAnotherDevice.setEnabled(false);
+        //connectToAnotherDevice.setEnabled(false);
         reconnect.startAnimation(fadeOutAnim);
-        reconnect.setEnabled(false);
+        //reconnect.setEnabled(false);
 
 
         currentStateSaveToSharedPref(addressOfCurrentDevice);
@@ -321,6 +346,8 @@ public class MainActivity extends AppCompatActivity implements BTConnectedInterf
         connectedThreadReadWriteData.send(COMMAND_SEND_MESSAGE);
         connectedThreadReadWriteData.send(mainViewModel.messageLogic(mainViewModel.MESSAGE_HOME));
 
+        Intent jobIntent=new Intent (getApplicationContext(), JobServiceAlarmListenerForBTIncomming.class);
+        JobServiceAlarmListenerForBTIncomming.doWork(getApplicationContext(),connectedThreadReadWriteData.getInputStream(),jobIntent);
     }
 
     /**

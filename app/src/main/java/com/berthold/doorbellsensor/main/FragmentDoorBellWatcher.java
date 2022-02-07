@@ -86,7 +86,6 @@ public class FragmentDoorBellWatcher extends Fragment implements BTConnectedInte
                 //
                 if (received.dataIsIncomplete()) {
                     Log.v(tag, "Incomplete data received....");
-
                 } else {
                     //
                     // Doorbell counter changed on connected device?
