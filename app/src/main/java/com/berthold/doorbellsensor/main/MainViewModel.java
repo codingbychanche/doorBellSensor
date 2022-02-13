@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel;
 import com.example.bluetoothconnector.DecodedSensorData;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 public class MainViewModel extends ViewModel {
@@ -63,8 +64,11 @@ public class MainViewModel extends ViewModel {
             //
             // Init list for the first time
             //
+            Calendar calendar=Calendar.getInstance();
+            String time=calendar.getTime().toString();
+
             rangHistotyDataList=new ArrayList<String>();
-            rangHistotyDataList.add("No Calls...");
+            rangHistotyDataList.add("Started at:"+time);
             rangHistoryList = new MutableLiveData<>();
             //
             // This is important, even if there is no active

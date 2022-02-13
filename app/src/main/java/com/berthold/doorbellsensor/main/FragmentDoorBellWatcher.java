@@ -1,5 +1,9 @@
 package com.berthold.doorbellsensor.main;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 
@@ -23,7 +27,7 @@ import com.example.bluetoothconnector.DecodedSensorData;
 
 import org.w3c.dom.Text;
 
-public class FragmentDoorBellWatcher extends Fragment implements BTConnectedInterface {
+public class FragmentDoorBellWatcher extends Fragment  {
 
     // Debug
     private String tag;
@@ -54,6 +58,52 @@ public class FragmentDoorBellWatcher extends Fragment implements BTConnectedInte
         tag = getClass().getSimpleName();
         Long time = System.currentTimeMillis();
 
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Broadcast receivers.
+        //
+        // This checks if the job service, checking for incoming alarms is still alive......
+        //
+        BroadcastReceiver isAlive = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Long timeServiceStarted=intent.getLongExtra("AliveSince",0);
+                //mainViewModel.btStatusMessage.postValue(">>Job Service is alive "+timeServiceStarted);
+            }
+        };
+        requireActivity().registerReceiver(isAlive, new IntentFilter("com.berthold.servicejobintentservice.ALARM_WATCHER_ALIVE"));
+
+        //
+        // This receiver is invoked when the associated job service detects an alarm.
+        //
+        BroadcastReceiver alarmReceived = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                String timeOfAlarm=intent.getStringExtra("alarmReceived");
+
+                Thread ring=new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+
+                        //
+                        // Alarm....
+                        //
+                        for (int ringing=0;ringing<5;ringing++){
+
+                            MediaPlayer mpPlayer = MediaPlayer.create(requireActivity(), R.raw.coin);
+                            mpPlayer.start();
+
+                            try {
+                                Thread.sleep(50);
+                            }catch (Exception e){}
+                        }
+
+                    }
+                });
+                ring.start();
+            }
+        };
+        requireActivity().registerReceiver(alarmReceived, new IntentFilter("com.berthold.servicejobintentservice.ALARM_INTENT"));
+
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // View model and it's observers
         //
@@ -67,6 +117,7 @@ public class FragmentDoorBellWatcher extends Fragment implements BTConnectedInte
             public void onChanged(String s) {
                 ImageView btSucessIcon = view.findViewById(R.id.connection_status_icon);
                 btSucessIcon.setVisibility(View.VISIBLE);
+                Log.v("SUCESS_",s);
             }
         };
         mainViewModel.getbtSucessMessage().observe(getActivity(), btConnectionSuccess);
@@ -91,10 +142,6 @@ public class FragmentDoorBellWatcher extends Fragment implements BTConnectedInte
                     // Doorbell counter changed on connected device?
                     //
                     if (received.getDoorbellRang() > doorBellRangTimes) {
-
-                        // OK, inform user, doorbell has rang......
-                        MediaPlayer mpPlayer = MediaPlayer.create(requireActivity(), R.raw.coin);
-                        mpPlayer.start();
 
                         doorBellRangTimes = received.getDoorbellRang();
                     }
@@ -123,34 +170,5 @@ public class FragmentDoorBellWatcher extends Fragment implements BTConnectedInte
             }
         };
         mainViewModel.getbtReceivedData().observe(getActivity(), btReceiveDataObserver);
-    }
-
-    @Override
-    public void sucess(ConnectedThreadReadWriteData connectedThreadReadWriteData) {
-
-    }
-
-    @Override
-    public void receiveDataFromBTDevice(DecodedSensorData d) {
-        mainViewModel.btReceivedData.postValue(d);
-        Log.v("INTERFACETEST", "Got data");
-    }
-
-    /**
-     * Callback receive status message from connected device.
-     */
-    @Override
-    public void receiveStatusMessage(String status) {
-        Log.v(tag, status);
-        mainViewModel.btStatusMessage.postValue(status);
-    }
-
-    /**
-     * Receive error message
-     */
-    @Override
-    public void receiveErrorMessage(String error) {
-        Log.v(tag, error);
-        mainViewModel.btErrorMessage.postValue(error);
     }
 }

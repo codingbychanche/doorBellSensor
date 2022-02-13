@@ -33,7 +33,6 @@ import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.berthold.doorbellsensor.JobService.JobServiceAlarmListenerForBTIncomming;
 import com.berthold.doorbellsensor.R;
 import com.example.bluetoothconnector.*;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -41,7 +40,32 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import java.util.Set;
 
 /**
- * Detects when the doorbell has been rang....
+ * <p><h1></h1>Detects when the doorbell has been rang....</h1></p>
+ *
+ * <p>Distinctly this class contains all interface receivers which evaluate/ display the result of all bluetooth
+ * connection/ data receiving results.<p>
+ *
+ * <p>When an connection was established successfully, {@link JobServiceAlarmListenerForBTIncomming} is invoked
+ * which distictivly evaluates if an alarm occurred and notifies the {@link FragmentDoorBellWatcher} and {@link FragmentRangHistory} fragments.</p>
+ *
+ * <p>{@link FragmentDoorBellWatcher}
+ * receives and displays all data send by the connected device, evaluates if an
+ * alarm has taken place and counts the total number of alarms occurred <br>
+ *
+ * <u>Alarms are received via the broadcast receiver ({sender: {@link JobServiceAlarmListenerForBTIncomming}=> <b>com.berthold.servicejobintentservice.ALARM_INTENT</b>)
+ * Data</ul>
+ * <u> It also receives broadcasts notifying that the {@link JobServiceAlarmListenerForBTIncomming}=> <b>com.berthold.servicejobintentservice.ALARM_WATCHER_ALIVE</b>
+ * is still alive</u>
+ * <u>Data is received by the interface methods implemented from {@link BTConnectedInterface}</u>
+ * </p>
+ *
+ * <p>{@link FragmentRangHistory}
+ * receives only alarm events send by the {@link JobServiceAlarmListenerForBTIncomming} service
+ * (<b>com.berthold.servicejobintentservice.ALARM_INTENT</b>). It then adds a new entry to the rang history- list and displays it....</p>
+ *
+ * <p>View Model</p>
+ * {@link MainActivity} and all fragments share one view model => {@link MainViewModel}
+ *
  */
 public class MainActivity extends AppCompatActivity implements BTConnectedInterface, FragmentSelectDevice.getDataFromFragment {
 
@@ -260,30 +284,9 @@ public class MainActivity extends AppCompatActivity implements BTConnectedInterf
             public void onChanged(@Nullable final String success) {
                 long currentTime = System.currentTimeMillis();
                 connectionHistoryView.append(currentTime + ">>" + success + "\n");
-                //mainViewModel.btSucessMessage.postValue(success);
             }
         };
         mainViewModel.getbtSucessMessage().observe(this, btSuccessObserver);
-
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        // Broadcast receivers.
-        //
-        BroadcastReceiver r = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                String timeOfAlarm=intent.getStringExtra("alarmReceived");
-                Log.v("MAIN_RECEIVED:", timeOfAlarm);
-
-                // Alarm....
-                MediaPlayer mpPlayer = MediaPlayer.create(getApplicationContext(), R.raw.sound);
-                mpPlayer.start();
-
-                mainViewModel.btSucessMessage.postValue(timeOfAlarm+"  Alarm");
-
-
-            }
-        };
-        registerReceiver(r, new IntentFilter("com.berthold.servicejobintentservice.CUSTOM_INTENT"));
 
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         //
@@ -327,8 +330,6 @@ public class MainActivity extends AppCompatActivity implements BTConnectedInterf
      */
     @Override
     public void sucess(ConnectedThreadReadWriteData connectedThreadReadWriteData) {
-        Log.v(tag, "Connection success!!!!!");
-        mainViewModel.getbtSucessMessage().postValue("Connected");
 
         this.connectedThreadReadWriteData = connectedThreadReadWriteData;
 
@@ -337,17 +338,21 @@ public class MainActivity extends AppCompatActivity implements BTConnectedInterf
         reconnect.startAnimation(fadeOutAnim);
         //reconnect.setEnabled(false);
 
-
         currentStateSaveToSharedPref(addressOfCurrentDevice);
 
         //
-        // Send initial message....
+        // Send initial message to device
         //
         connectedThreadReadWriteData.send(COMMAND_SEND_MESSAGE);
         connectedThreadReadWriteData.send(mainViewModel.messageLogic(mainViewModel.MESSAGE_HOME));
 
+        //
+        // Create Job Service
+        //
         Intent jobIntent=new Intent (getApplicationContext(), JobServiceAlarmListenerForBTIncomming.class);
         JobServiceAlarmListenerForBTIncomming.doWork(getApplicationContext(),connectedThreadReadWriteData.getInputStream(),jobIntent);
+
+        mainViewModel.btSucessMessage.postValue("Connected...");
     }
 
     /**
@@ -377,6 +382,7 @@ public class MainActivity extends AppCompatActivity implements BTConnectedInterf
     public void receiveErrorMessage(String error) {
         Log.v(tag, error);
         mainViewModel.btErrorMessage.postValue(error);
+
     }
 
     /////////////////////////////////////////////////////// All things Bluetooth ///////////////////////////////////////////////////////////////////////////

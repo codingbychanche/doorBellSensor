@@ -21,7 +21,7 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".JobService.JobServiceAlarmListenerForBTIncomming"
+        <service android:name=".main.JobServiceAlarmListenerForBTIncomming"
             android:permission="android.permission.BIND_JOB_SERVICE"
             android:exported="true"></service>
 

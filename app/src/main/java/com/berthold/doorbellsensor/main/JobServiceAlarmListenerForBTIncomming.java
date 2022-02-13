@@ -1,4 +1,4 @@
-package com.berthold.doorbellsensor.JobService;
+package com.berthold.doorbellsensor.main;
 /**
  * This code is executed in background as long as the app is not closed or destroyed.
  */
@@ -6,19 +6,12 @@ package com.berthold.doorbellsensor.JobService;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.Intent;
-import android.media.MediaPlayer;
-import android.os.Handler;
 import android.util.Log;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
-import com.berthold.doorbellsensor.R;
-import com.berthold.doorbellsensor.main.MainActivity;
-
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -36,14 +29,31 @@ public class JobServiceAlarmListenerForBTIncomming extends androidx.core.app.Job
     private static InputStream mIs;
 
     // Control
+    private Long timeJobWasStarted;
     private int lastState;
     private static final int WAS_ALARM = 1;
     private static final int WAS_NO_ALARM = 2;
 
     /**
+     * This starts the job service (the code inside this classes 'onHandleWork()' method.
+     * This is invoked by the {@link com.berthold.doorbellsensor.main.MainActivity} when a connection could be
+     * established.
+     *
+     * @param context
+     * @param alarmListenerForBTIncomming
+     */
+    static public  void doWork(Context context, InputStream tmpIs, Intent alarmListenerForBTIncomming) {
+        notCanceled = true;
+        mIs = tmpIs;
+        enqueueWork(context, JobServiceAlarmListenerForBTIncomming.class, JOB_ID, alarmListenerForBTIncomming);
+    }
+
+    /**
      * This listens for incoming connections and starts the alarm...
      *
      * An alarm is detected whenever data is received.
+     *
+     * todo: Add alarm detection logic matching firmware.....
      *
      * @param intent
      */
@@ -51,9 +61,18 @@ public class JobServiceAlarmListenerForBTIncomming extends androidx.core.app.Job
     protected void onHandleWork(@NonNull Intent intent) {
 
         lastState = WAS_NO_ALARM;
+        timeJobWasStarted=System.currentTimeMillis();
+
+        Intent thisJobIsAliveIntent=new Intent();
+        thisJobIsAliveIntent.putExtra("AliveSince", timeJobWasStarted);
+        thisJobIsAliveIntent.setAction("com.berthold.servicejobintentservice.ALARM_WATCHER_ALIVE");
 
         while (notCanceled) {
             Log.v("Logging", "-");
+            //
+            // Tell all receivers, that we are alive and kicking.....
+            //
+            sendBroadcast(thisJobIsAliveIntent);
 
             byte[] packetReceieved = new byte[1024];
 
@@ -67,18 +86,17 @@ public class JobServiceAlarmListenerForBTIncomming extends androidx.core.app.Job
                 if (lastState == WAS_ALARM) {
 
                     String received = new String(packetReceieved, 0, bytesAvailable);
-                    Log.v("RECEIVED", received);
-
+                    Log.v("RECEIVED_", received);
 
                     Date currentTime = Calendar.getInstance().getTime();
 
                     //
                     // Notify all receivers that we have an alarm.....
                     //
-                    Intent myIntent = new Intent();
-                    myIntent.putExtra("alarmReceived", "Time of Alarm:"+System.currentTimeMillis());
-                    myIntent.setAction("com.berthold.servicejobintentservice.CUSTOM_INTENT");
-                    sendBroadcast(myIntent);
+                    Intent alarmIntent = new Intent();
+                    alarmIntent.putExtra("alarmReceived", "Time of Alarm:"+System.currentTimeMillis());
+                    alarmIntent.setAction("com.berthold.servicejobintentservice.ALARM_INTENT");
+                    sendBroadcast(alarmIntent);
 
                     //startAlarmActivity("Alarm"); // Option.....
 
@@ -96,21 +114,6 @@ public class JobServiceAlarmListenerForBTIncomming extends androidx.core.app.Job
             } catch (InterruptedException e) {
             }
         }
-    }
-
-    /**
-     * This starts the job service (the code inside this classes 'onHandleWork()' method.
-     * This is invoked by the {@link com.berthold.doorbellsensor.main.MainActivity} when a connection could be
-     * established.
-     *
-     * @param context
-     * @param
-     * @param alarmListenerForBTIncomming
-     */
-    static public  void doWork(Context context, InputStream tmpIs, Intent alarmListenerForBTIncomming) {
-        notCanceled = true;
-        mIs = tmpIs;
-        enqueueWork(context, JobServiceAlarmListenerForBTIncomming.class, JOB_ID, alarmListenerForBTIncomming);
     }
 
     @Override

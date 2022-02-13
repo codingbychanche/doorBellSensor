@@ -1,5 +1,9 @@
 package com.berthold.doorbellsensor.main;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.util.Log;
@@ -21,6 +25,8 @@ import com.berthold.doorbellsensor.R;
 import com.example.bluetoothconnector.DecodedSensorData;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 
 public class FragmentRangHistory extends Fragment {
 
@@ -56,28 +62,29 @@ public class FragmentRangHistory extends Fragment {
         // Create custom list adapter for our list showing the rang history
         //
         ListView rangHistoryListView=(ListView)view.findViewById(R.id.rang_history_list);
-        Log.v("LISTLIST",rangHistoryListView+"");
         ArrayList<String> rangHistoryList=mainViewModel.getRangHistoryList().getValue();
-        Log.v("LISTLIST",rangHistoryList+"");
         ArrayAdapter<String> rangHistoryListAdapter =
                 new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, android.R.id.text1, rangHistoryList);
         rangHistoryListView.setAdapter(rangHistoryListAdapter);
 
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Broadcast receivers.
         //
-        // BT- receive data from device....
+        // This receiver is invoked when the associated job service detects an alarm.
         //
-        final Observer<DecodedSensorData> btReceiveDataObserver = new Observer<DecodedSensorData>() {
+        BroadcastReceiver r = new BroadcastReceiver() {
             @Override
-            public void onChanged(@Nullable final DecodedSensorData received) {
-                long currentTime = System.currentTimeMillis();
-                Log.v(tag,received.getDoorbellRang()+"");
+            public void onReceive(Context context, Intent intent) {
+                String timeOfAlarm=intent.getStringExtra("alarmReceived");
 
+                Calendar calendar=Calendar.getInstance();
+                String time=calendar.getTime().toString();
+
+                rangHistoryList.add(0,time);
+                mainViewModel.rangHistoryList.postValue(rangHistoryList);
+                rangHistoryListAdapter.notifyDataSetChanged();
             }
         };
-        mainViewModel.getbtReceivedData().observe(getActivity(), btReceiveDataObserver);
-
-
+        requireActivity().registerReceiver(r, new IntentFilter("com.berthold.servicejobintentservice.ALARM_INTENT"));
     }
-
-
 }
