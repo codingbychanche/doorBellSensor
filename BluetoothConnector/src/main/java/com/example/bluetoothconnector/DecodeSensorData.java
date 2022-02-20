@@ -19,10 +19,13 @@ import org.json.JSONObject;
 
 public class DecodeSensorData {
 
+    static String tag;
+
     public static DecodedSensorData decodeJson(String jsonRecieievedDataFromBluetoothDevice)
     {
+        tag=Class.class.getSimpleName();
 
-        Log.v("JSON>>>>",jsonRecieievedDataFromBluetoothDevice);
+        Log.v(tag,jsonRecieievedDataFromBluetoothDevice);
         String tag=null;
         DecodedSensorData decodedSensorData=new DecodedSensorData();
 
@@ -37,7 +40,7 @@ public class DecodeSensorData {
             if (jo.has("on_to_off_state")) decodedSensorData.setOnToOffState(jo.getString("on_to_off_state"));
             if (jo.has("off_to_on_state")) decodedSensorData.setOnToOffState(jo.getString("off_to_on_state"));
             if (jo.has("sens_set_state")) decodedSensorData.setOnToOffState(jo.getString("sens_set_state"));
-            if (jo.has("off_to_on_state")) decodedSensorData.setOnToOffState(jo.getString("off_to_on_state"));
+            if (jo.has("alarm_state")) decodedSensorData.setAlarmState(jo.getString("alarm_state"));
             if (jo.has("sens_set_state")) decodedSensorData.setSensSetState(jo.getString("sens_set_state"));
             if (jo.has("sens_read")) decodedSensorData.setSensReadData(jo.getLong("sens_read"));
             if (jo.has("sens_set_to")) decodedSensorData.setSensSetTo(jo.getLong("sens_set_to"));

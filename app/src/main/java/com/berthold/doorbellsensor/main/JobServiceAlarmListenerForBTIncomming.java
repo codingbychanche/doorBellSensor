@@ -10,6 +10,9 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
+import com.example.bluetoothconnector.DecodeSensorData;
+import com.example.bluetoothconnector.DecodedSensorData;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Calendar;
@@ -27,12 +30,10 @@ public class JobServiceAlarmListenerForBTIncomming extends androidx.core.app.Job
     // BT
     private static BluetoothSocket mSocket = null;
     private static InputStream mIs;
+    private int timesDoorbellRangLast = 0;
 
     // Control
     private Long timeJobWasStarted;
-    private int lastState;
-    private static final int WAS_ALARM = 1;
-    private static final int WAS_NO_ALARM = 2;
 
     /**
      * This starts the job service (the code inside this classes 'onHandleWork()' method.
@@ -42,7 +43,7 @@ public class JobServiceAlarmListenerForBTIncomming extends androidx.core.app.Job
      * @param context
      * @param alarmListenerForBTIncomming
      */
-    static public  void doWork(Context context, InputStream tmpIs, Intent alarmListenerForBTIncomming) {
+    static public void doWork(Context context, InputStream tmpIs, Intent alarmListenerForBTIncomming) {
         notCanceled = true;
         mIs = tmpIs;
         enqueueWork(context, JobServiceAlarmListenerForBTIncomming.class, JOB_ID, alarmListenerForBTIncomming);
@@ -50,9 +51,9 @@ public class JobServiceAlarmListenerForBTIncomming extends androidx.core.app.Job
 
     /**
      * This listens for incoming connections and starts the alarm...
-     *
+     * <p>
      * An alarm is detected whenever data is received.
-     *
+     * <p>
      * todo: Add alarm detection logic matching firmware.....
      *
      * @param intent
@@ -60,10 +61,9 @@ public class JobServiceAlarmListenerForBTIncomming extends androidx.core.app.Job
     @Override
     protected void onHandleWork(@NonNull Intent intent) {
 
-        lastState = WAS_NO_ALARM;
-        timeJobWasStarted=System.currentTimeMillis();
+        timeJobWasStarted = System.currentTimeMillis();
 
-        Intent thisJobIsAliveIntent=new Intent();
+        Intent thisJobIsAliveIntent = new Intent();
         thisJobIsAliveIntent.putExtra("AliveSince", timeJobWasStarted);
         thisJobIsAliveIntent.setAction("com.berthold.servicejobintentservice.ALARM_WATCHER_ALIVE");
 
@@ -76,31 +76,53 @@ public class JobServiceAlarmListenerForBTIncomming extends androidx.core.app.Job
 
             byte[] packetReceieved = new byte[1024];
 
+            DecodedSensorData sensorData = new DecodedSensorData();
+            int timesBellRangReceived;
+
+            //
+            // Receive data.
+            //
             try {
                 int bytesAvailable = mIs.available();
                 if (bytesAvailable > 0) {
                     packetReceieved = new byte[bytesAvailable];
                     mIs.read(packetReceieved);
-                    lastState = WAS_ALARM;
                 }
-                if (lastState == WAS_ALARM) {
 
-                    String received = new String(packetReceieved, 0, bytesAvailable);
-                    Log.v("RECEIVED_", received);
+                //
+                // Evaluate received data.
+                //
+                // If doorbell was rang is checked by comparing
+                // the number of times such an event was received and
+                // the number received from the connected device.
+                //
+                String received = new String(packetReceieved, 0, bytesAvailable);
+                sensorData = DecodeSensorData.decodeJson(received);
 
-                    Date currentTime = Calendar.getInstance().getTime();
+                if (sensorData.dataIsIncomplete()) {
+                    Log.v("JSON::", " incompleteData     ");
+                } else {
+                    timesBellRangReceived = sensorData.getDoorbellRang();
 
-                    //
-                    // Notify all receivers that we have an alarm.....
-                    //
-                    Intent alarmIntent = new Intent();
-                    alarmIntent.putExtra("alarmReceived", "Time of Alarm:"+System.currentTimeMillis());
-                    alarmIntent.setAction("com.berthold.servicejobintentservice.ALARM_INTENT");
-                    sendBroadcast(alarmIntent);
+                    Log.v("ALARM::", "last:" + timesDoorbellRangLast + " now:" + timesBellRangReceived);
 
-                    //startAlarmActivity("Alarm"); // Option.....
+                    if (timesBellRangReceived > timesDoorbellRangLast) {
+                        Log.v("ALARM::"," ALAAAAAARM");
 
-                    lastState = WAS_NO_ALARM;
+                        timesDoorbellRangLast=timesBellRangReceived;
+
+                        Date currentTime = Calendar.getInstance().getTime();
+
+                        //
+                        // Notify all receivers that we have an alarm.....
+                        //
+                        Intent alarmIntent = new Intent();
+                        alarmIntent.putExtra("alarmReceived", "Time of Alarm:" + System.currentTimeMillis());
+                        alarmIntent.setAction("com.berthold.servicejobintentservice.ALARM_INTENT");
+                        sendBroadcast(alarmIntent);
+
+                        //startAlarmActivity("Alarm"); // Option.....
+                    }
                 }
             } catch (IOException e) {
                 cancelThisJob();

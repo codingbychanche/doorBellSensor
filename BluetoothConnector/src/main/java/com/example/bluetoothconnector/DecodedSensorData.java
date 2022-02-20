@@ -16,6 +16,7 @@ public class DecodedSensorData {
     private int doorbellRang;
     private String onToOffState,offToOnState,sensSetState;
     private long sensReadData;
+    private String alarmState;
 
     private long sensSetTo;
 
@@ -114,6 +115,14 @@ public class DecodedSensorData {
 
     public void setSensSetTo(long sensSetTo) {
         this.sensSetTo = sensSetTo;
+    }
+
+    public String getAlarmState() {
+        return alarmState;
+    }
+
+    public void setAlarmState(String alarmState) {
+        this.alarmState = alarmState;
     }
 }
 

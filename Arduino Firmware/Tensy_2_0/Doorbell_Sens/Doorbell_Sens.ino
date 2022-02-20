@@ -79,11 +79,10 @@ int sensSetButton=PIN_D6;
 // and vice versa...
 //
 long sens1,sens2;
+String onOffState;
 long lastSens1ValueRead;
 int lastSensState;
 String sensSetState;
-int numberOfTimesNotSend;
-#define WAIT_TIMES_UNTIL_SEND 55
 //
 // Doorbell rang xxx times...
 //
@@ -320,13 +319,10 @@ void loop() {
       // Notify the connected device that the sensor has been uncovered
       // and show "alarm screen" immediadly.
       //
-      //BT.println("on");
+      onOffState="on";
       doorBellRang++;
       displayToShow=DOORBELL_SCREEN;
-
-      // Anything sens to the connected app will result in an alarm...
-      BT.print("rang");
-      }
+    }
     //
     // Detect if state has changed from uncovered to covered sensor
     //
@@ -334,7 +330,7 @@ void loop() {
       // 
       // Inform connected device...
       //
-      //BT.println("off");
+      onOffState="off";
   }
   //
   // Send all data read from the sensor, continiously via the BT connection...
@@ -348,7 +344,7 @@ void loop() {
       // an increase is detected, somebody must have rang.....
       //
       // 
-      String d=d+"{\"doorbell_rang\":"+doorBellRang+",\"sens_set_to\":"+sens2+"}";
+      String d=d+"{\"doorbell_rang\":"+doorBellRang+",\"on_off_state\":\""+onOffState+"\"}";
       BT.println(d);
       d="";
   }
@@ -492,16 +488,4 @@ void displayLogic(){
   display.print ((int)temperatureC);
   display.print("'C");
  }
- /**
-  * Send all data aquired via the BT connection.
-  * 
-  * 
-  */
-  void sendData(){
-
-    if (numberOfTimesNotSend>WAIT_TIMES_UNTIL_SEND){
-
-      numberOfTimesNotSend=0;
-    }
-    numberOfTimesNotSend++;
-  }
+ 
